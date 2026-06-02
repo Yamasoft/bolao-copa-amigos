@@ -195,12 +195,29 @@
                       <th>Nome</th>
                       <th>Celular</th>
                       <th>Cadastro</th>
+                      <th>Acoes</th>
                     </tr>
                   </thead>
                   <tbody id="participantsTable"></tbody>
                 </table>
               </div>
             </section>
+
+            <div id="editParticipantPanel" class="panel form" hidden>
+              <h3>Editar participante</h3>
+              <label>
+                Nome completo
+                <input id="editName" required minlength="3" maxlength="120" />
+              </label>
+              <label>
+                Celular com WhatsApp
+                <input id="editPhone" required minlength="8" maxlength="24" />
+              </label>
+              <div class="button-row">
+                <button id="saveEditParticipant" class="primary" type="button">Salvar alteracao</button>
+                <button id="cancelEditParticipant" class="secondary" type="button">Cancelar</button>
+              </div>
+            </div>
 
             <section class="panel">
               <h3>Lancar resultados reais</h3>
@@ -238,6 +255,7 @@
       </main>
     </div>
 
+    <div id="toast" role="alert" class="toast"></div>
     <script src="app.js"></script>
   </body>
 </html>

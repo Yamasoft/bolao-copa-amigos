@@ -31,6 +31,11 @@ const dom = {
   locked: document.querySelector("#locked"),
   saveSettings: document.querySelector("#saveSettings"),
   participantsTable: document.querySelector("#participantsTable"),
+  editParticipantPanel: document.querySelector("#editParticipantPanel"),
+  editName: document.querySelector("#editName"),
+  editPhone: document.querySelector("#editPhone"),
+  saveEditParticipant: document.querySelector("#saveEditParticipant"),
+  cancelEditParticipant: document.querySelector("#cancelEditParticipant"),
   resultsList: document.querySelector("#resultsList"),
   saveResults: document.querySelector("#saveResults"),
   importJson: document.querySelector("#importJson"),
@@ -38,7 +43,8 @@ const dom = {
   rankingTable: document.querySelector("#rankingTable"),
   publicRanking: document.querySelector("#publicRanking"),
   exportPdf: document.querySelector("#exportPdf"),
-  exportCsv: document.querySelector("#exportCsv")
+  exportCsv: document.querySelector("#exportCsv"),
+  toast: document.querySelector("#toast")
 };
 
 async function api(path, options = {}) {
@@ -81,6 +87,16 @@ function bindEvents() {
   dom.importGames.addEventListener("click", importGames);
   dom.exportPdf.addEventListener("click", () => window.open("/api/exports/ranking.pdf", "_blank"));
   dom.exportCsv.addEventListener("click", () => window.open("/api/exports/ranking.csv", "_blank"));
+  dom.saveEditParticipant.addEventListener("click", saveEditParticipant);
+  dom.cancelEditParticipant.addEventListener("click", () => { dom.editParticipantPanel.hidden = true; });
+  dom.participantsTable.addEventListener("click", onParticipantsTableClick);
+}
+
+function toast(text, type = "success") {
+  dom.toast.textContent = text;
+  dom.toast.className = `toast ${type} show`;
+  clearTimeout(dom.toast._timer);
+  dom.toast._timer = setTimeout(() => dom.toast.classList.remove("show"), 4000);
 }
 
 function showView(viewId) {
@@ -122,7 +138,7 @@ async function registerParticipant(event) {
     await loadParticipant(participant.id, false);
     showView("palpites");
   } catch (error) {
-    alert(error.message);
+    toast(error.message, "error");
   }
 }
 
@@ -140,7 +156,7 @@ async function loadParticipant(id, notify) {
     renderPredictionForms(data);
     if (notify) showView("palpites");
   } catch (error) {
-    alert(error.message);
+    toast(error.message, "error");
   }
 }
 
@@ -199,7 +215,7 @@ function renderPredictionForms(data) {
 
 async function savePredictions() {
   if (!state.participantSession) {
-    alert("Carregue ou cadastre um participante primeiro.");
+    toast("Carregue ou cadastre um participante primeiro.", "error");
     return;
   }
 
@@ -224,9 +240,9 @@ async function savePredictions() {
     });
     renderPredictionForms(updated);
     await renderRanking();
-    alert("Palpites salvos.");
+    toast("Palpites salvos.");
   } catch (error) {
-    alert(error.message);
+    toast(error.message, "error");
   }
 }
 
@@ -242,7 +258,7 @@ async function loginAdmin(event) {
     dom.adminLoginForm.reset();
     await loadAdminData(true);
   } catch (error) {
-    alert(error.message);
+    toast(error.message, "error");
   }
 }
 
@@ -272,11 +288,17 @@ function renderAdmin() {
               <td>${escapeHtml(participant.name)}</td>
               <td>${escapeHtml(participant.phone)}</td>
               <td>${formatDateTime(participant.createdAt)}</td>
+              <td>
+                <div class="button-row">
+                  <button class="secondary small" type="button" data-edit-id="${escapeAttr(participant.id)}">Editar</button>
+                  <button class="danger small" type="button" data-delete-id="${escapeAttr(participant.id)}" data-delete-name="${escapeAttr(participant.name)}">Excluir</button>
+                </div>
+              </td>
             </tr>
           `;
         })
         .join("")
-    : `<tr><td colspan="4">Nenhum participante cadastrado.</td></tr>`;
+    : `<tr><td colspan="5">Nenhum participante cadastrado.</td></tr>`;
 
   dom.resultsList.innerHTML = data.matches
     .map((match) => {
@@ -298,6 +320,57 @@ function renderAdmin() {
   renderRankingRows(data.ranking, dom.rankingTable);
 }
 
+function onParticipantsTableClick(event) {
+  const editBtn = event.target.closest("[data-edit-id]");
+  const deleteBtn = event.target.closest("[data-delete-id]");
+  if (editBtn) openEditParticipant(editBtn.dataset.editId);
+  if (deleteBtn) confirmDeleteParticipant(deleteBtn.dataset.deleteId, deleteBtn.dataset.deleteName);
+}
+
+function openEditParticipant(id) {
+  const participant = state.adminData.participants.find((p) => p.id === id);
+  if (!participant) return;
+  dom.editParticipantPanel.dataset.editingId = id;
+  dom.editName.value = participant.name;
+  dom.editPhone.value = participant.phone;
+  dom.editParticipantPanel.hidden = false;
+  dom.editParticipantPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+async function saveEditParticipant() {
+  const id = dom.editParticipantPanel.dataset.editingId;
+  if (!id) return;
+  try {
+    await api(`/api/admin/participants/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      admin: true,
+      body: JSON.stringify({ name: dom.editName.value, phone: dom.editPhone.value })
+    });
+    dom.editParticipantPanel.hidden = true;
+    await loadAdminData(false);
+    toast("Participante atualizado.");
+  } catch (error) {
+    toast(error.message, "error");
+  }
+}
+
+async function confirmDeleteParticipant(id, name) {
+  if (!window.confirm(`Excluir "${name}" e todos os palpites vinculados?\nEsta acao nao pode ser desfeita.`)) return;
+  try {
+    await api(`/api/admin/participants/${encodeURIComponent(id)}`, { method: "DELETE", admin: true });
+    if (state.participantSession === id) {
+      state.participantSession = "";
+      localStorage.removeItem("bolaoParticipantId");
+    }
+    dom.editParticipantPanel.hidden = true;
+    await loadAdminData(false);
+    await renderRanking();
+    toast("Participante excluido.");
+  } catch (error) {
+    toast(error.message, "error");
+  }
+}
+
 async function saveSettings() {
   try {
     await api("/api/admin/settings", {
@@ -310,9 +383,9 @@ async function saveSettings() {
     });
     await loadPublicData();
     await loadAdminData(false);
-    alert("Configuracao salva.");
+    toast("Configuracao salva.");
   } catch (error) {
-    alert(error.message);
+    toast(error.message, "error");
   }
 }
 
@@ -331,15 +404,19 @@ async function saveResults() {
     });
     await loadAdminData(false);
     await renderRanking();
-    alert("Resultados salvos e pontuacao recalculada.");
+    toast("Resultados salvos e pontuacao recalculada.");
   } catch (error) {
-    alert(error.message);
+    toast(error.message, "error");
   }
 }
 
 async function importGames() {
   if (!dom.importJson.value.trim()) {
-    alert("Cole um JSON com groups e matches.");
+    toast("Cole um JSON com groups e matches.", "error");
+    return;
+  }
+
+  if (!window.confirm("Atencao: importar novos jogos vai apagar todos os palpites existentes. Deseja continuar?")) {
     return;
   }
 
@@ -353,9 +430,9 @@ async function importGames() {
     dom.importJson.value = "";
     await loadPublicData();
     await loadAdminData(false);
-    alert("Jogos importados. Palpites anteriores foram limpos.");
+    toast("Jogos importados. Palpites anteriores foram limpos.");
   } catch (error) {
-    alert(error.message);
+    toast(error.message, "error");
   }
 }
 
@@ -387,11 +464,11 @@ async function copyShareMessage() {
   const text = dom.shareMessage.value;
   try {
     await navigator.clipboard.writeText(text);
-    alert("Mensagem copiada.");
+    toast("Mensagem copiada.");
   } catch {
     dom.shareMessage.select();
     document.execCommand("copy");
-    alert("Mensagem copiada.");
+    toast("Mensagem copiada.");
   }
 }
 

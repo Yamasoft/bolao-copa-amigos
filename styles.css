@@ -429,3 +429,53 @@ code {
     text-align: left;
   }
 }
+
+/* Toast notification */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 13px 18px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.22s, transform 0.22s;
+  pointer-events: none;
+  z-index: 200;
+  max-width: 360px;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.toast.error { background: var(--danger); }
+.toast.success { background: var(--primary); }
+
+/* Small button variant */
+button.small {
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 0.82rem;
+}
+
+/* Danger button */
+button.danger {
+  background: var(--danger);
+  color: #fff;
+  border: 1px solid transparent;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button.danger:hover {
+  background: #7a2c2c;
+}

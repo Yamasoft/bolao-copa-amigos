@@ -524,6 +524,44 @@ async function routeApi(request, response, pathname) {
     return;
   }
 
+  const adminParticipantMatch = pathname.match(/^\/api\/admin\/participants\/([^/]+)$/);
+
+  if (request.method === "PUT" && adminParticipantMatch) {
+    const body = await getBody(request);
+    const id = adminParticipantMatch[1];
+    const participant = store.participants.find((p) => p.id === id);
+    if (!participant) {
+      sendJson(response, 404, { error: "Participante nao encontrado." });
+      return;
+    }
+    const name = String(body.name || "").trim();
+    const phone = normalizePhone(body.phone);
+    if (name.length < 3 || phone.length < 8) {
+      sendJson(response, 400, { error: "Informe nome completo e celular com WhatsApp." });
+      return;
+    }
+    participant.name = name;
+    participant.phone = phone;
+    writeStore(store);
+    sendJson(response, 200, participant);
+    return;
+  }
+
+  if (request.method === "DELETE" && adminParticipantMatch) {
+    const id = adminParticipantMatch[1];
+    const index = store.participants.findIndex((p) => p.id === id);
+    if (index === -1) {
+      sendJson(response, 404, { error: "Participante nao encontrado." });
+      return;
+    }
+    store.participants.splice(index, 1);
+    store.matchPredictions = store.matchPredictions.filter((p) => p.participantId !== id);
+    store.qualifiedPredictions = store.qualifiedPredictions.filter((p) => p.participantId !== id);
+    writeStore(store);
+    sendJson(response, 200, { ok: true });
+    return;
+  }
+
   if (request.method === "GET" && pathname === "/api/ranking") {
     sendJson(response, 200, calculateRanking(store));
     return;
