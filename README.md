@@ -1,83 +1,86 @@
 # Bolao Copa Amigos
 
-Projeto novo e separado para um app recreativo de palpites da Copa do Mundo entre amigos. Nao envolve dinheiro, apostas ou premiacao financeira.
+App recreativo para palpites da Copa do Mundo entre amigos. Sem dinheiro, sem apostas, sem premiacao financeira.
 
-## Stack da primeira versao
+---
 
-- Frontend web estatico em HTML, CSS e JavaScript
-- Backend Node.js sem dependencias externas
-- Persistencia no servidor em `data/store.json`
-- Exportacao de ranking em PDF e CSV
+## Aviso de isolamento
 
-A primeira entrega evita dependencias externas para ficar executavel imediatamente. A persistencia pode ser migrada para SQLite em uma proxima etapa sem mudar as telas principais.
+Este projeto e completamente independente. Nao compartilha codigo, dados ou dependencias com outros projetos
+(Farmavet, TotemCafe, Totem Bite ou qualquer outro). Todo o trabalho fica em `C:\BolaoCopaAmigos`.
 
-## Rodar localmente
+---
+
+## Stack
+
+- Frontend: HTML + CSS + JavaScript puro (sem frameworks)
+- Backend: Node.js sem dependencias externas (apenas modulos nativos)
+- Persistencia: `data/store.json` (arquivo JSON local)
+- Exportacoes: PDF e CSV gerados no servidor, sem bibliotecas externas
+
+---
+
+## Como rodar
 
 ```bash
 npm start
 ```
 
-Acesse:
-
-```text
-http://localhost:4173
-```
+Acesse em: `http://localhost:4173`
 
 Se a porta estiver ocupada:
 
-```bash
+```powershell
 $env:PORT=4180; npm start
 ```
 
-## Admin
+Verificar que o servidor esta no ar:
+
+```
+GET http://localhost:4173/api/health
+→ { "status": "ok" }
+```
+
+---
+
+## Login admin
 
 Credenciais padrao de desenvolvimento:
 
-```text
+```
 Usuario: admin
-Senha: admin123
+Senha:   admin123
 ```
 
-Para trocar:
+Para alterar antes de usar em producao:
 
-```bash
+```powershell
 $env:ADMIN_USER="seu_usuario"
-$env:ADMIN_PASSWORD="sua_senha"
+$env:ADMIN_PASSWORD="sua_senha_segura"
+$env:TOKEN_SECRET="chave-secreta-longa-e-aleatoria"
 npm start
 ```
 
-## Funcionalidades
+---
 
-- Cadastro de participante com nome completo e celular WhatsApp
-- Geracao de numero de inscricao e ID do participante
-- Jogos mockados da primeira fase organizados por grupos
-- Palpites de placar por jogo
-- Selecao de dois classificados por grupo
-- Bloqueio automatico por prazo e bloqueio manual no admin
-- Painel admin protegido por login
-- Lista de participantes
-- Lancamento de resultados reais
-- Calculo automatico de pontuacao
-- Ranking por posicao, nome, celular, pontos dos jogos, pontos dos classificados e total
-- Exportacao de ranking em PDF e CSV
-- Link publico e mensagem pronta para WhatsApp, sem API oficial
-- Importacao de tabela de jogos via JSON no painel admin
+## Como importar a tabela de jogos
 
-## Pontuacao
+1. Acesse o painel admin e va em **Importar jogos**.
+2. Clique em **Carregar exemplo** para ver o formato, ou baixe `tabela-exemplo.json`.
+3. Monte o JSON com `groups` e `matches` conforme o formato abaixo.
+4. Cole o JSON na area de texto e clique em **Importar tabela**.
+5. Confirme o aviso — um backup e criado automaticamente antes de qualquer alteracao.
 
-- Placar exato: 5 pontos
-- Acertou apenas vencedor ou empate: 2 pontos
-- Errou vencedor/empate: 0 ponto
-- Cada pais classificado corretamente: 25 pontos
-
-## Importar jogos
-
-Formato esperado no painel admin:
+### Formato esperado
 
 ```json
 {
   "groups": [
-    { "id": "A", "name": "Grupo A", "teams": ["Brasil", "Japao", "Canada", "Marrocos"] }
+    {
+      "id": "A",
+      "name": "Grupo A",
+      "teams": ["Brasil", "Serbia", "Suica", "Camaroes"]
+    }
   ],
   "matches": [
     {
@@ -86,10 +89,73 @@ Formato esperado no painel admin:
       "date": "2026-06-12",
       "time": "13:00",
       "teamA": "Brasil",
-      "teamB": "Japao",
-      "scoreA": null,
-      "scoreB": null
+      "teamB": "Serbia"
     }
   ]
 }
 ```
+
+### Regras de validacao
+
+O servidor rejeita o JSON se:
+
+- `groups` ou `matches` forem vazios ou ausentes
+- Algum grupo nao tiver `id`, `name` ou menos de 2 times
+- Algum jogo nao tiver `groupId`, `teamA` ou `teamB`
+- `teamA` ou `teamB` nao pertencerem ao grupo indicado em `groupId`
+- `teamA === teamB` (time jogando contra si mesmo)
+- `date` fora do formato `YYYY-MM-DD` ou `time` fora de `HH:MM`
+
+Palpites existentes so sao apagados se a validacao passar totalmente.
+
+---
+
+## Como fazer backup manual
+
+O backup e criado automaticamente a cada importacao de tabela, salvo em:
+
+```
+data/store-backup-YYYY-MM-DDTHH-MM-SS.json
+```
+
+Para fazer um backup manual pelo terminal:
+
+```powershell
+Copy-Item data\store.json "data\store-backup-manual-$(Get-Date -Format 'yyyyMMdd-HHmmss').json"
+```
+
+Para restaurar um backup:
+
+```powershell
+Copy-Item data\store-backup-2026-06-12T14-30-00.json data\store.json
+```
+
+Os arquivos em `data/` nao sao rastreados pelo Git (listados no `.gitignore`).
+
+---
+
+## Pontuacao
+
+| Resultado | Pontos |
+|-----------|--------|
+| Placar exato | 5 |
+| Acertou vencedor ou empate (sem placar exato) | 2 |
+| Errou | 0 |
+| Cada classificado correto por grupo | 25 |
+
+---
+
+## Funcionalidades
+
+- Cadastro com nome e celular (WhatsApp)
+- Numero de inscricao sequencial + ID unico de acesso
+- Palpites de placar para cada jogo da fase de grupos
+- Selecao de dois classificados por grupo
+- Bloqueio automatico por prazo ou bloqueio manual no admin
+- Painel admin com login protegido por token HMAC-SHA256
+- Edicao e exclusao de participante pelo admin
+- Lancamento de resultados reais e recalculo automatico de pontuacao
+- Ranking publico em tempo real
+- Exportacao de ranking em PDF e CSV (gerados sem bibliotecas externas)
+- Link e mensagem pronta para compartilhar via WhatsApp
+- Importacao de tabela de jogos com validacao completa e backup automatico

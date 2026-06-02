@@ -227,8 +227,34 @@
 
             <section class="panel">
               <h3>Importar jogos</h3>
-              <p class="hint">Cole JSON com os arrays <code>groups</code> e <code>matches</code>. Ao importar, os palpites existentes sao limpos.</p>
-              <textarea id="importJson" rows="8" placeholder='{"groups":[...],"matches":[...]}'></textarea>
+              <p class="hint">
+                Cole o JSON com <code>groups</code> e <code>matches</code>. O sistema valida os dados antes de salvar.
+                Um backup de <code>data/store.json</code> e criado automaticamente.
+                Palpites existentes so sao removidos se a validacao passar.
+              </p>
+              <details class="format-hint">
+                <summary>Ver formato esperado</summary>
+                <pre class="format-pre">{
+  "groups": [
+    { "id": "A", "name": "Grupo A", "teams": ["Brasil", "Serbia", "Suica", "Camaroes"] }
+  ],
+  "matches": [
+    {
+      "id": "A-1",
+      "groupId": "A",
+      "date": "2026-06-12",
+      "time": "13:00",
+      "teamA": "Brasil",
+      "teamB": "Serbia"
+    }
+  ]
+}</pre>
+                <p class="hint">Baixe o arquivo de exemplo completo: <a href="/tabela-exemplo.json" target="_blank">tabela-exemplo.json</a></p>
+              </details>
+              <div class="button-row" style="margin-bottom:10px">
+                <button id="loadExample" class="secondary small" type="button">Carregar exemplo</button>
+              </div>
+              <textarea id="importJson" rows="10" placeholder='{"groups":[...],"matches":[]}'></textarea>
               <button id="importGames" class="secondary" type="button">Importar tabela</button>
             </section>
 

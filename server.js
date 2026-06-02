@@ -386,6 +386,75 @@ function pdfText(value) {
     .slice(0, 74);
 }
 
+function backupStore() {
+  if (!fs.existsSync(dataFile)) return null;
+  const tag = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const backupFile = path.join(dataDir, `store-backup-${tag}.json`);
+  fs.copyFileSync(dataFile, backupFile);
+  return path.basename(backupFile);
+}
+
+function validateImport(body) {
+  const errors = [];
+
+  if (!Array.isArray(body.groups) || body.groups.length === 0) {
+    errors.push("groups deve ser um array nao vazio.");
+  } else {
+    body.groups.forEach((group, i) => {
+      if (!group.id || !String(group.id).trim()) errors.push(`groups[${i}]: id obrigatorio.`);
+      if (!group.name || !String(group.name).trim()) errors.push(`groups[${i}]: name obrigatorio.`);
+      if (!Array.isArray(group.teams) || group.teams.length < 2) {
+        errors.push(`groups[${i}]: teams deve ter pelo menos 2 selecoes.`);
+      } else if (group.teams.some((t) => !t || !String(t).trim())) {
+        errors.push(`groups[${i}]: todos os times devem ter nome preenchido.`);
+      }
+      if (errors.length >= 10) return;
+    });
+  }
+
+  if (!Array.isArray(body.matches) || body.matches.length === 0) {
+    errors.push("matches deve ser um array nao vazio.");
+  } else {
+    const teamsByGroup = new Map();
+    if (Array.isArray(body.groups)) {
+      body.groups.forEach((g) => {
+        if (g.id && Array.isArray(g.teams)) {
+          teamsByGroup.set(String(g.id).trim(), new Set(g.teams.map((t) => String(t).trim())));
+        }
+      });
+    }
+    const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+    const timeRe = /^\d{2}:\d{2}$/;
+
+    for (let i = 0; i < body.matches.length; i++) {
+      const match = body.matches[i];
+      const pfx = `matches[${i}]`;
+      if (!match.groupId) { errors.push(`${pfx}: groupId obrigatorio.`); continue; }
+      if (!match.teamA) { errors.push(`${pfx}: teamA obrigatorio.`); continue; }
+      if (!match.teamB) { errors.push(`${pfx}: teamB obrigatorio.`); continue; }
+      if (String(match.teamA).trim() === String(match.teamB).trim()) {
+        errors.push(`${pfx}: teamA e teamB nao podem ser iguais.`);
+      }
+      if (match.date && !dateRe.test(match.date)) errors.push(`${pfx}: date deve ser YYYY-MM-DD.`);
+      if (match.time && !timeRe.test(match.time)) errors.push(`${pfx}: time deve ser HH:MM.`);
+      const groupTeams = teamsByGroup.get(String(match.groupId).trim());
+      if (!groupTeams) {
+        errors.push(`${pfx}: groupId "${match.groupId}" nao encontrado em groups.`);
+      } else {
+        if (!groupTeams.has(String(match.teamA).trim())) {
+          errors.push(`${pfx}: teamA "${match.teamA}" nao pertence ao grupo "${match.groupId}".`);
+        }
+        if (!groupTeams.has(String(match.teamB).trim())) {
+          errors.push(`${pfx}: teamB "${match.teamB}" nao pertence ao grupo "${match.groupId}".`);
+        }
+      }
+      if (errors.length >= 10) break;
+    }
+  }
+
+  return errors;
+}
+
 async function routeApi(request, response, pathname) {
   const store = readStore();
 
@@ -502,25 +571,31 @@ async function routeApi(request, response, pathname) {
 
   if (request.method === "POST" && pathname === "/api/admin/matches/import") {
     const body = await getBody(request);
-    if (!Array.isArray(body.groups) || !Array.isArray(body.matches)) {
-      sendJson(response, 400, { error: "Envie groups e matches em JSON." });
+    const errors = validateImport(body);
+    if (errors.length) {
+      sendJson(response, 400, { error: errors.join(" | ") });
       return;
     }
-    store.groups = body.groups;
+    const backupName = backupStore();
+    store.groups = body.groups.map((g) => ({
+      id: String(g.id).trim(),
+      name: String(g.name).trim(),
+      teams: g.teams.map((t) => String(t).trim())
+    }));
     store.matches = body.matches.map((match, index) => ({
       id: match.id || `J${index + 1}`,
-      groupId: match.groupId,
+      groupId: String(match.groupId).trim(),
       date: match.date || "",
       time: match.time || "",
-      teamA: match.teamA,
-      teamB: match.teamB,
+      teamA: String(match.teamA).trim(),
+      teamB: String(match.teamB).trim(),
       scoreA: match.scoreA ?? null,
       scoreB: match.scoreB ?? null
     }));
     store.matchPredictions = [];
     store.qualifiedPredictions = [];
     writeStore(store);
-    sendJson(response, 200, { groups: store.groups, matches: store.matches });
+    sendJson(response, 200, { groups: store.groups, matches: store.matches, backup: backupName });
     return;
   }
 

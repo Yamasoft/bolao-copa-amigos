@@ -479,3 +479,30 @@ button.danger {
 button.danger:hover {
   background: #7a2c2c;
 }
+
+/* Import format hint */
+.format-hint {
+  margin-bottom: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: var(--soft);
+}
+
+.format-hint summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.88rem;
+  user-select: none;
+}
+
+.format-pre {
+  margin: 10px 0 6px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  overflow-x: auto;
+  white-space: pre;
+}

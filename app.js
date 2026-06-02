@@ -40,6 +40,7 @@ const dom = {
   saveResults: document.querySelector("#saveResults"),
   importJson: document.querySelector("#importJson"),
   importGames: document.querySelector("#importGames"),
+  loadExample: document.querySelector("#loadExample"),
   rankingTable: document.querySelector("#rankingTable"),
   publicRanking: document.querySelector("#publicRanking"),
   exportPdf: document.querySelector("#exportPdf"),
@@ -87,6 +88,7 @@ function bindEvents() {
   dom.importGames.addEventListener("click", importGames);
   dom.exportPdf.addEventListener("click", () => window.open("/api/exports/ranking.pdf", "_blank"));
   dom.exportCsv.addEventListener("click", () => window.open("/api/exports/ranking.csv", "_blank"));
+  dom.loadExample.addEventListener("click", loadExampleJson);
   dom.saveEditParticipant.addEventListener("click", saveEditParticipant);
   dom.cancelEditParticipant.addEventListener("click", () => { dom.editParticipantPanel.hidden = true; });
   dom.participantsTable.addEventListener("click", onParticipantsTableClick);
@@ -410,6 +412,17 @@ async function saveResults() {
   }
 }
 
+async function loadExampleJson() {
+  try {
+    const resp = await fetch("/tabela-exemplo.json");
+    if (!resp.ok) throw new Error("Arquivo nao encontrado.");
+    dom.importJson.value = await resp.text();
+    toast("Exemplo carregado. Revise e clique em Importar tabela.");
+  } catch {
+    toast("Nao foi possivel carregar o exemplo.", "error");
+  }
+}
+
 async function importGames() {
   if (!dom.importJson.value.trim()) {
     toast("Cole um JSON com groups e matches.", "error");
@@ -422,7 +435,7 @@ async function importGames() {
 
   try {
     const payload = JSON.parse(dom.importJson.value);
-    await api("/api/admin/matches/import", {
+    const result = await api("/api/admin/matches/import", {
       method: "POST",
       admin: true,
       body: JSON.stringify(payload)
@@ -430,7 +443,8 @@ async function importGames() {
     dom.importJson.value = "";
     await loadPublicData();
     await loadAdminData(false);
-    toast("Jogos importados. Palpites anteriores foram limpos.");
+    const backupMsg = result.backup ? ` Backup salvo: data/${result.backup}.` : "";
+    toast(`Jogos importados com sucesso.${backupMsg}`);
   } catch (error) {
     toast(error.message, "error");
   }

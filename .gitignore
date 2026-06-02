@@ -1,5 +1,5 @@
-# Dados persistidos localmente
-data/store.json
+# Dados persistidos e backups locais
+data/
 
 # Logs do servidor
 *.log
