@@ -1,0 +1,10 @@
+{
+  "name": "bolao-copa-amigos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "App recreativo para palpites da Copa do Mundo entre amigos.",
+  "scripts": {
+    "check": "node --check server.js && node --check app.js",
+    "start": "node server.js"
+  }
+}

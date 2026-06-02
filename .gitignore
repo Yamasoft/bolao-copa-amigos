@@ -1,0 +1,13 @@
+# Dados persistidos localmente
+data/store.json
+
+# Logs do servidor
+*.log
+*.err
+
+# Node
+node_modules/
+
+# Variáveis de ambiente
+.env
+.env.*

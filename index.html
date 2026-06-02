@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bolao Copa Amigos</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">B</span>
+          <div>
+            <h1>Bolao Copa Amigos</h1>
+            <p>Palpites recreativos, sem dinheiro</p>
+          </div>
+        </div>
+
+        <nav id="nav" class="nav">
+          <button class="active" type="button" data-view="inicio">Inicio</button>
+          <button type="button" data-view="cadastro">Cadastro</button>
+          <button type="button" data-view="palpites">Palpites</button>
+          <button type="button" data-view="ranking">Ranking</button>
+          <button type="button" data-view="admin">Admin</button>
+        </nav>
+
+        <div class="status-card">
+          <span>Status</span>
+          <strong id="statusText">Carregando...</strong>
+        </div>
+      </aside>
+
+      <main class="content">
+        <section id="inicio" class="view active">
+          <div class="page-title">
+            <p class="eyebrow">Copa do Mundo</p>
+            <h2>Bolao entre amigos, apenas por diversao</h2>
+            <p>Cadastre-se, preencha os placares da primeira fase, escolha dois classificados por grupo e acompanhe o ranking.</p>
+          </div>
+
+          <div class="hero">
+            <div class="pitch" aria-hidden="true">
+              <span></span>
+              <i></i>
+            </div>
+            <div class="share panel">
+              <h3>Compartilhar convite</h3>
+              <label>
+                Link publico
+                <input id="shareUrl" readonly />
+              </label>
+              <label>
+                Mensagem pronta
+                <textarea id="shareMessage" rows="5" readonly></textarea>
+              </label>
+              <button id="copyLink" class="primary" type="button">Copiar mensagem</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="cadastro" class="view">
+          <div class="page-title">
+            <p class="eyebrow">Participante</p>
+            <h2>Cadastro</h2>
+          </div>
+
+          <div class="grid-two">
+            <form id="registerForm" class="panel form">
+              <h3>Novo participante</h3>
+              <label>
+                Nome completo
+                <input id="participantName" required minlength="3" maxlength="120" autocomplete="name" />
+              </label>
+              <label>
+                Celular com WhatsApp
+                <input id="participantPhone" required minlength="8" maxlength="24" autocomplete="tel" placeholder="Ex.: 11999999999" />
+              </label>
+              <button class="primary" type="submit">Gerar inscricao</button>
+            </form>
+
+            <div class="panel">
+              <h3>Inscricao</h3>
+              <div id="registrationResult" class="result-box">O ID do participante aparece aqui depois do cadastro.</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="palpites" class="view">
+          <div class="page-title">
+            <p class="eyebrow">Primeira fase</p>
+            <h2>Palpites</h2>
+          </div>
+
+          <form id="loadParticipantForm" class="lookup">
+            <label>
+              ID do participante
+              <input id="participantIdInput" placeholder="Cole o ID gerado no cadastro" />
+            </label>
+            <button class="secondary" type="submit">Carregar</button>
+          </form>
+
+          <div id="participantBox" class="participant-box">Nenhum participante carregado.</div>
+
+          <div id="predictionsForm" class="grid-two wide-left">
+            <section class="panel">
+              <h3>Placares dos jogos</h3>
+              <div id="matchesList" class="stack"></div>
+            </section>
+
+            <section class="panel">
+              <h3>Classificados por grupo</h3>
+              <p class="hint">Marque ate dois paises por grupo. Cada acerto vale 25 pontos.</p>
+              <div id="qualifiedList" class="stack"></div>
+              <button id="savePredictions" class="primary full" type="button">Salvar palpites</button>
+            </section>
+          </div>
+        </section>
+
+        <section id="ranking" class="view">
+          <div class="page-title">
+            <p class="eyebrow">Pontuacao</p>
+            <h2>Ranking</h2>
+          </div>
+
+          <section class="panel">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Posicao</th>
+                    <th>Nome</th>
+                    <th>Celular</th>
+                    <th>Jogos</th>
+                    <th>Classificados</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody id="publicRanking"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section id="admin" class="view">
+          <div class="page-title">
+            <p class="eyebrow">Administracao</p>
+            <h2>Painel admin</h2>
+          </div>
+
+          <form id="adminLoginForm" class="panel form compact">
+            <h3>Login</h3>
+            <label>
+              Usuario
+              <input id="adminUsername" autocomplete="username" value="admin" />
+            </label>
+            <label>
+              Senha
+              <input id="adminPassword" type="password" autocomplete="current-password" placeholder="admin123" />
+            </label>
+            <button class="primary" type="submit">Entrar</button>
+          </form>
+
+          <div id="adminPanel" hidden>
+            <div class="grid-two">
+              <section class="panel form">
+                <h3>Prazo e bloqueio</h3>
+                <label>
+                  Prazo final
+                  <input id="deadlineAt" type="datetime-local" />
+                </label>
+                <label class="check-row inline">
+                  <input id="locked" type="checkbox" />
+                  Bloquear alteracoes manualmente
+                </label>
+                <button id="saveSettings" class="primary" type="button">Salvar prazo</button>
+              </section>
+
+              <section class="panel">
+                <h3>Exportacoes</h3>
+                <div class="button-row">
+                  <button id="exportPdf" class="primary" type="button">Ranking PDF</button>
+                  <button id="exportCsv" class="secondary" type="button">Ranking CSV</button>
+                </div>
+              </section>
+            </div>
+
+            <section class="panel">
+              <h3>Participantes cadastrados</h3>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Inscricao</th>
+                      <th>Nome</th>
+                      <th>Celular</th>
+                      <th>Cadastro</th>
+                    </tr>
+                  </thead>
+                  <tbody id="participantsTable"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="panel">
+              <h3>Lancar resultados reais</h3>
+              <div id="resultsList" class="stack"></div>
+              <button id="saveResults" class="primary" type="button">Salvar resultados e recalcular</button>
+            </section>
+
+            <section class="panel">
+              <h3>Importar jogos</h3>
+              <p class="hint">Cole JSON com os arrays <code>groups</code> e <code>matches</code>. Ao importar, os palpites existentes sao limpos.</p>
+              <textarea id="importJson" rows="8" placeholder='{"groups":[...],"matches":[...]}'></textarea>
+              <button id="importGames" class="secondary" type="button">Importar tabela</button>
+            </section>
+
+            <section class="panel">
+              <h3>Ranking admin</h3>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Posicao</th>
+                      <th>Nome</th>
+                      <th>Celular</th>
+                      <th>Jogos</th>
+                      <th>Classificados</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rankingTable"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
