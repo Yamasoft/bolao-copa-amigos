@@ -89,10 +89,10 @@ O arquivo `tabela-exemplo.json` e o seed contem dados com a seguinte confiabilid
 | H | Espanha, Cabo Verde, Arabia Saudita, Uruguai | 15/06 |
 | I | Franca, Senegal, Iraque, Noruega | 16/06 |
 | J | Argentina, Argelia, Austria, Jordania | 16-17/06 |
+| K | Portugal, RD Congo, Uzbequistao, Colombia | 17/06 |
+| L | Inglaterra, Croacia, Gana, Panama | 17/06 |
 
-**Rodadas 2 e 3**: datas e horarios estimados (+4/+8 dias da rodada 1). Confirmar na fonte oficial.
-
-**Grupos K e L**: nao vistos nas capturas de tela disponíveis. Adicione-os via importacao JSON.
+**Rodadas 2 e 3**: datas e horarios estimados (+4/+8 dias da rodada 1). Confirmar na fonte oficial antes de abrir palpites.
 
 Para importar a tabela completa atualizada:
 - ge.globo.com/futebol/copa-do-mundo → tabela completa

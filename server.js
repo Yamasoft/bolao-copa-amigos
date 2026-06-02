@@ -33,7 +33,9 @@ const seedGroups = [
   { id: "G", name: "Grupo G", teams: ["Belgica", "Egito", "Ira", "Nova Zelandia"] },
   { id: "H", name: "Grupo H", teams: ["Espanha", "Cabo Verde", "Arabia Saudita", "Uruguai"] },
   { id: "I", name: "Grupo I", teams: ["Franca", "Senegal", "Iraque", "Noruega"] },
-  { id: "J", name: "Grupo J", teams: ["Argentina", "Argelia", "Austria", "Jordania"] }
+  { id: "J", name: "Grupo J", teams: ["Argentina",  "Argelia",  "Austria",     "Jordania"    ] },
+  { id: "K", name: "Grupo K", teams: ["Portugal",   "RD Congo", "Uzbequistao", "Colombia"    ] },
+  { id: "L", name: "Grupo L", teams: ["Inglaterra", "Croacia",  "Gana",        "Panama"      ] }
 ];
 
 const seedMatches = [
@@ -106,7 +108,21 @@ const seedMatches = [
   { id: "J-3", groupId: "J", date: "2026-06-20", time: "22:00", teamA: "Argentina",       teamB: "Austria"          },
   { id: "J-4", groupId: "J", date: "2026-06-21", time: "01:00", teamA: "Argelia",         teamB: "Jordania"         },
   { id: "J-5", groupId: "J", date: "2026-06-24", time: "20:00", teamA: "Argentina",       teamB: "Jordania"         },
-  { id: "J-6", groupId: "J", date: "2026-06-24", time: "20:00", teamA: "Argelia",         teamB: "Austria"          }
+  { id: "J-6", groupId: "J", date: "2026-06-24", time: "20:00", teamA: "Argelia",         teamB: "Austria"          },
+  // ── Grupo K ────────────────────────────────────────────
+  { id: "K-1", groupId: "K", date: "2026-06-17", time: "14:00", teamA: "Portugal",        teamB: "RD Congo"         },
+  { id: "K-2", groupId: "K", date: "2026-06-17", time: "23:00", teamA: "Uzbequistao",     teamB: "Colombia"         },
+  { id: "K-3", groupId: "K", date: "2026-06-21", time: "16:00", teamA: "Portugal",        teamB: "Uzbequistao"      },
+  { id: "K-4", groupId: "K", date: "2026-06-21", time: "20:00", teamA: "RD Congo",        teamB: "Colombia"         },
+  { id: "K-5", groupId: "K", date: "2026-06-25", time: "20:00", teamA: "Portugal",        teamB: "Colombia"         },
+  { id: "K-6", groupId: "K", date: "2026-06-25", time: "20:00", teamA: "RD Congo",        teamB: "Uzbequistao"      },
+  // ── Grupo L ────────────────────────────────────────────
+  { id: "L-1", groupId: "L", date: "2026-06-17", time: "17:00", teamA: "Inglaterra",      teamB: "Croacia"          },
+  { id: "L-2", groupId: "L", date: "2026-06-17", time: "20:00", teamA: "Gana",            teamB: "Panama"           },
+  { id: "L-3", groupId: "L", date: "2026-06-21", time: "17:00", teamA: "Inglaterra",      teamB: "Gana"             },
+  { id: "L-4", groupId: "L", date: "2026-06-21", time: "20:00", teamA: "Croacia",         teamB: "Panama"           },
+  { id: "L-5", groupId: "L", date: "2026-06-25", time: "20:00", teamA: "Inglaterra",      teamB: "Panama"           },
+  { id: "L-6", groupId: "L", date: "2026-06-25", time: "20:00", teamA: "Croacia",         teamB: "Gana"             }
 ].map((m) => ({ ...m, scoreA: null, scoreB: null }));
 
 function createInitialStore() {
