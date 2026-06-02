@@ -100,6 +100,18 @@
             <button class="secondary" type="submit">Carregar</button>
           </form>
 
+          <p class="divider-text">ou buscar pelo celular cadastrado</p>
+
+          <form id="searchPhoneForm" class="lookup">
+            <label>
+              Celular com WhatsApp
+              <input id="searchPhoneInput" type="tel" placeholder="Ex.: 11999999999" />
+            </label>
+            <button class="secondary" type="submit">Buscar</button>
+          </form>
+
+          <div id="searchPhoneResult" class="result-box" hidden></div>
+
           <div id="participantBox" class="participant-box">Nenhum participante carregado.</div>
 
           <div id="predictionsForm" class="grid-two wide-left">
@@ -130,7 +142,6 @@
                   <tr>
                     <th>Posicao</th>
                     <th>Nome</th>
-                    <th>Celular</th>
                     <th>Jogos</th>
                     <th>Classificados</th>
                     <th>Total</th>
@@ -181,6 +192,11 @@
                 <div class="button-row">
                   <button id="exportPdf" class="primary" type="button">Ranking PDF</button>
                   <button id="exportCsv" class="secondary" type="button">Ranking CSV</button>
+                </div>
+                <h3 class="sub-heading">Compartilhar</h3>
+                <div class="button-row">
+                  <button id="adminCopyLink" class="secondary" type="button">Copiar link publico</button>
+                  <button id="adminCopyWhatsapp" class="secondary" type="button">Mensagem WhatsApp</button>
                 </div>
               </section>
             </div>

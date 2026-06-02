@@ -494,6 +494,22 @@ async function routeApi(request, response, pathname) {
     return;
   }
 
+  if (request.method === "GET" && pathname === "/api/participants/search") {
+    const searchUrl = new URL(request.url, `http://localhost:${port}`);
+    const phone = normalizePhone(searchUrl.searchParams.get("phone") || "");
+    if (phone.length < 8) {
+      sendJson(response, 400, { error: "Informe o celular com DDD." });
+      return;
+    }
+    const found = store.participants.find((p) => p.phone === phone);
+    if (!found) {
+      sendJson(response, 404, { error: "Celular nao encontrado. Verifique o numero ou faca novo cadastro." });
+      return;
+    }
+    sendJson(response, 200, { id: found.id, name: found.name, registrationNumber: found.registrationNumber });
+    return;
+  }
+
   const participantMatch = pathname.match(/^\/api\/participants\/([^/]+)$/);
   if (request.method === "GET" && participantMatch) {
     const payload = participantPayload(store, participantMatch[1]);
@@ -638,7 +654,8 @@ async function routeApi(request, response, pathname) {
   }
 
   if (request.method === "GET" && pathname === "/api/ranking") {
-    sendJson(response, 200, calculateRanking(store));
+    const ranking = calculateRanking(store).map(({ phone: _p, ...rest }) => rest);
+    sendJson(response, 200, ranking);
     return;
   }
 

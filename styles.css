@@ -480,6 +480,71 @@ button.danger:hover {
   background: #7a2c2c;
 }
 
+/* Divider between lookup forms */
+.divider-text {
+  margin: 12px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  position: relative;
+}
+
+.divider-text::before,
+.divider-text::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 38%;
+  height: 1px;
+  background: var(--line);
+}
+
+.divider-text::before { left: 0; }
+.divider-text::after  { right: 0; }
+
+/* Status labels in participant box */
+.status-alert {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.status-ok {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Personal link after registration */
+.personal-link-input {
+  font-size: 0.82rem;
+  color: var(--muted);
+  background: var(--soft);
+}
+
+/* WhatsApp share button */
+button.wa-btn {
+  background: #25d366;
+  color: #fff;
+  border: 1px solid transparent;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button.wa-btn:hover {
+  background: #1da851;
+}
+
+/* Sub-heading inside panel */
+.sub-heading {
+  margin: 18px 0 10px;
+  font-size: 0.95rem;
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
 /* Import format hint */
 .format-hint {
   margin-bottom: 12px;

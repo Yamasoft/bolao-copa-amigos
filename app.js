@@ -23,10 +23,15 @@ const dom = {
   matchesList: document.querySelector("#matchesList"),
   qualifiedList: document.querySelector("#qualifiedList"),
   savePredictions: document.querySelector("#savePredictions"),
+  searchPhoneForm: document.querySelector("#searchPhoneForm"),
+  searchPhoneInput: document.querySelector("#searchPhoneInput"),
+  searchPhoneResult: document.querySelector("#searchPhoneResult"),
   adminLoginForm: document.querySelector("#adminLoginForm"),
   adminUsername: document.querySelector("#adminUsername"),
   adminPassword: document.querySelector("#adminPassword"),
   adminPanel: document.querySelector("#adminPanel"),
+  adminCopyLink: document.querySelector("#adminCopyLink"),
+  adminCopyWhatsapp: document.querySelector("#adminCopyWhatsapp"),
   deadlineAt: document.querySelector("#deadlineAt"),
   locked: document.querySelector("#locked"),
   saveSettings: document.querySelector("#saveSettings"),
@@ -48,16 +53,17 @@ const dom = {
   toast: document.querySelector("#toast")
 };
 
+function normalizePhone(phone) {
+  return String(phone || "").replace(/[^\d+]/g, "").slice(0, 24);
+}
+
 async function api(path, options = {}) {
   const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
   if (options.admin) headers.Authorization = `Bearer ${state.adminToken}`;
-
   const response = await fetch(path, { ...options, headers });
   const contentType = response.headers.get("content-type") || "";
   const payload = contentType.includes("application/json") ? await response.json() : await response.text();
-  if (!response.ok) {
-    throw new Error(payload.error || "Erro ao processar a solicitacao.");
-  }
+  if (!response.ok) throw new Error(payload.error || "Erro ao processar a solicitacao.");
   return payload;
 }
 
@@ -65,7 +71,12 @@ async function init() {
   bindEvents();
   await loadPublicData();
   await renderRanking();
-  if (state.participantSession) await loadParticipant(state.participantSession, false);
+  const urlId = new URLSearchParams(location.search).get("id");
+  if (urlId) {
+    await loadParticipant(urlId, true);
+  } else if (state.participantSession) {
+    await loadParticipant(state.participantSession, false);
+  }
   if (state.adminToken) await loadAdminData(false);
 }
 
@@ -74,21 +85,23 @@ function bindEvents() {
     const button = event.target.closest("[data-view]");
     if (button) showView(button.dataset.view);
   });
-
   dom.copyLink.addEventListener("click", copyShareMessage);
   dom.registerForm.addEventListener("submit", registerParticipant);
   dom.loadParticipantForm.addEventListener("submit", (event) => {
     event.preventDefault();
     loadParticipant(dom.participantIdInput.value.trim(), true);
   });
+  dom.searchPhoneForm.addEventListener("submit", searchByPhone);
   dom.savePredictions.addEventListener("click", savePredictions);
   dom.adminLoginForm.addEventListener("submit", loginAdmin);
+  dom.adminCopyLink.addEventListener("click", adminCopyPublicLink);
+  dom.adminCopyWhatsapp.addEventListener("click", adminCopyWhatsappMsg);
   dom.saveSettings.addEventListener("click", saveSettings);
   dom.saveResults.addEventListener("click", saveResults);
   dom.importGames.addEventListener("click", importGames);
+  dom.loadExample.addEventListener("click", loadExampleJson);
   dom.exportPdf.addEventListener("click", () => window.open("/api/exports/ranking.pdf", "_blank"));
   dom.exportCsv.addEventListener("click", () => window.open("/api/exports/ranking.csv", "_blank"));
-  dom.loadExample.addEventListener("click", loadExampleJson);
   dom.saveEditParticipant.addEventListener("click", saveEditParticipant);
   dom.cancelEditParticipant.addEventListener("click", () => { dom.editParticipantPanel.hidden = true; });
   dom.participantsTable.addEventListener("click", onParticipantsTableClick);
@@ -102,8 +115,8 @@ function toast(text, type = "success") {
 }
 
 function showView(viewId) {
-  dom.views.forEach((view) => view.classList.toggle("active", view.id === viewId));
-  dom.nav.querySelectorAll("button").forEach((button) => button.classList.toggle("active", button.dataset.view === viewId));
+  dom.views.forEach((v) => v.classList.toggle("active", v.id === viewId));
+  dom.nav.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.view === viewId));
 }
 
 async function loadPublicData() {
@@ -113,7 +126,6 @@ async function loadPublicData() {
     ? `Prazo: ${formatDateTime(state.publicData.settings.deadlineAt)}`
     : "Sem prazo definido";
   dom.statusText.textContent = `${closedText} · ${deadlineText}`;
-
   const url = `${location.origin}${location.pathname}`;
   dom.shareUrl.value = url;
   dom.shareMessage.value = `${state.publicData.settings.publicMessage}\n\n${url}`;
@@ -124,17 +136,31 @@ async function registerParticipant(event) {
   try {
     const participant = await api("/api/participants", {
       method: "POST",
-      body: JSON.stringify({
-        name: dom.participantName.value,
-        phone: dom.participantPhone.value
-      })
+      body: JSON.stringify({ name: dom.participantName.value, phone: dom.participantPhone.value })
     });
     localStorage.setItem("bolaoParticipantId", participant.id);
     state.participantSession = participant.id;
+
+    const personalUrl = `${location.origin}${location.pathname}?id=${encodeURIComponent(participant.id)}`;
+    const waMsg = `Bolao Copa Amigos — meus palpites:\n${personalUrl}`;
+
     dom.registrationResult.innerHTML = `
-      <strong>Inscricao ${participant.registrationNumber}</strong>
-      <span>ID para acessar depois: ${participant.id}</span>
+      <strong>Inscricao ${participant.registrationNumber} realizada!</strong>
+      <span>Guarde este link para consultar ou alterar seus palpites antes do prazo.</span>
+      <input id="personalLinkInput" class="personal-link-input" readonly value="${escapeAttr(personalUrl)}" />
+      <div class="button-row">
+        <button id="copyPersonalLink" class="secondary small" type="button">Copiar meu link</button>
+        <button id="shareWaBtn" class="wa-btn small" type="button">Compartilhar pelo WhatsApp</button>
+      </div>
     `;
+    document.querySelector("#copyPersonalLink").addEventListener("click", () => {
+      navigator.clipboard.writeText(personalUrl).catch(() => {});
+      toast("Link copiado.");
+    });
+    document.querySelector("#shareWaBtn").addEventListener("click", () => {
+      window.open(`https://wa.me/?text=${encodeURIComponent(waMsg)}`, "_blank");
+    });
+
     dom.participantIdInput.value = participant.id;
     dom.registerForm.reset();
     await loadParticipant(participant.id, false);
@@ -144,16 +170,50 @@ async function registerParticipant(event) {
   }
 }
 
+async function searchByPhone(event) {
+  event.preventDefault();
+  const phone = normalizePhone(dom.searchPhoneInput.value);
+  if (phone.length < 8) {
+    toast("Informe o celular com DDD.", "error");
+    return;
+  }
+  try {
+    const result = await api(`/api/participants/search?phone=${encodeURIComponent(phone)}`);
+    dom.searchPhoneResult.hidden = false;
+    dom.searchPhoneResult.innerHTML = `
+      <strong>${escapeHtml(result.name)}</strong>
+      <span>Inscricao ${result.registrationNumber}</span>
+      <button class="primary small" id="loadFoundParticipant" type="button">Continuar preenchendo palpites</button>
+    `;
+    document.querySelector("#loadFoundParticipant").addEventListener("click", () => {
+      dom.searchPhoneResult.hidden = true;
+      dom.searchPhoneInput.value = "";
+      loadParticipant(result.id, false);
+    });
+  } catch (error) {
+    dom.searchPhoneResult.hidden = false;
+    dom.searchPhoneResult.innerHTML = `<span>${escapeHtml(error.message)}</span>`;
+  }
+}
+
 async function loadParticipant(id, notify) {
   if (!id) return;
   try {
     const data = await api(`/api/participants/${encodeURIComponent(id)}`);
     state.participantSession = id;
     localStorage.setItem("bolaoParticipantId", id);
+
+    const deadline = state.publicData?.settings?.deadlineAt;
+    const statusText = data.closed
+      ? "Palpites encerrados."
+      : deadline
+        ? `Palpites abertos ate ${formatDateTime(deadline)}.`
+        : "Palpites abertos.";
+
     dom.participantBox.innerHTML = `
       <strong>${escapeHtml(data.participant.name)}</strong>
       <span>Inscricao ${data.participant.registrationNumber} · ${escapeHtml(data.participant.phone)}</span>
-      <span>${data.closed ? "Consulta liberada, alteracoes bloqueadas." : "Alteracoes liberadas antes do prazo."}</span>
+      <span class="${data.closed ? "status-alert" : "status-ok"}">${statusText}</span>
     `;
     renderPredictionForms(data);
     if (notify) showView("palpites");
@@ -220,21 +280,18 @@ async function savePredictions() {
     toast("Carregue ou cadastre um participante primeiro.", "error");
     return;
   }
-
   const matchPredictions = [];
   state.publicData.matches.forEach((match) => {
     const scoreA = document.querySelector(`[data-match-a="${match.id}"]`)?.value;
     const scoreB = document.querySelector(`[data-match-b="${match.id}"]`)?.value;
     if (scoreA !== "" && scoreB !== "") matchPredictions.push({ matchId: match.id, scoreA: Number(scoreA), scoreB: Number(scoreB) });
   });
-
   const qualifiedPredictions = [];
   document.querySelectorAll("[data-qualified]:checked").forEach((input) => {
     const groupId = input.dataset.qualified;
     const count = qualifiedPredictions.filter((item) => item.groupId === groupId).length;
     if (count < 2) qualifiedPredictions.push({ groupId, team: input.value });
   });
-
   try {
     const updated = await api(`/api/participants/${encodeURIComponent(state.participantSession)}/predictions`, {
       method: "PUT",
@@ -283,43 +340,37 @@ function renderAdmin() {
 
   dom.participantsTable.innerHTML = data.participants.length
     ? data.participants
-        .map((participant) => {
-          return `
-            <tr>
-              <td>${participant.registrationNumber}</td>
-              <td>${escapeHtml(participant.name)}</td>
-              <td>${escapeHtml(participant.phone)}</td>
-              <td>${formatDateTime(participant.createdAt)}</td>
-              <td>
-                <div class="button-row">
-                  <button class="secondary small" type="button" data-edit-id="${escapeAttr(participant.id)}">Editar</button>
-                  <button class="danger small" type="button" data-delete-id="${escapeAttr(participant.id)}" data-delete-name="${escapeAttr(participant.name)}">Excluir</button>
-                </div>
-              </td>
-            </tr>
-          `;
-        })
-        .join("")
+        .map((p) => `
+          <tr>
+            <td>${p.registrationNumber}</td>
+            <td>${escapeHtml(p.name)}</td>
+            <td>${escapeHtml(p.phone)}</td>
+            <td>${formatDateTime(p.createdAt)}</td>
+            <td>
+              <div class="button-row">
+                <button class="secondary small" type="button" data-edit-id="${escapeAttr(p.id)}">Editar</button>
+                <button class="danger small" type="button" data-delete-id="${escapeAttr(p.id)}" data-delete-name="${escapeAttr(p.name)}">Excluir</button>
+              </div>
+            </td>
+          </tr>
+        `).join("")
     : `<tr><td colspan="5">Nenhum participante cadastrado.</td></tr>`;
 
   dom.resultsList.innerHTML = data.matches
-    .map((match) => {
-      return `
-        <article class="match-card">
-          <div class="match-meta">${escapeHtml(groupName(data.groups, match.groupId))} · ${formatDate(match.date)} · ${escapeHtml(match.time)}</div>
-          <div class="match-line">
-            <strong>${escapeHtml(match.teamA)}</strong>
-            <input type="number" min="0" value="${match.scoreA ?? ""}" data-result-a="${match.id}" />
-            <span>x</span>
-            <input type="number" min="0" value="${match.scoreB ?? ""}" data-result-b="${match.id}" />
-            <strong>${escapeHtml(match.teamB)}</strong>
-          </div>
-        </article>
-      `;
-    })
-    .join("");
+    .map((match) => `
+      <article class="match-card">
+        <div class="match-meta">${escapeHtml(groupName(data.groups, match.groupId))} · ${formatDate(match.date)} · ${escapeHtml(match.time)}</div>
+        <div class="match-line">
+          <strong>${escapeHtml(match.teamA)}</strong>
+          <input type="number" min="0" value="${match.scoreA ?? ""}" data-result-a="${match.id}" />
+          <span>x</span>
+          <input type="number" min="0" value="${match.scoreB ?? ""}" data-result-b="${match.id}" />
+          <strong>${escapeHtml(match.teamB)}</strong>
+        </div>
+      </article>
+    `).join("");
 
-  renderRankingRows(data.ranking, dom.rankingTable);
+  renderRankingRows(data.ranking, dom.rankingTable, { showPhone: true });
 }
 
 function onParticipantsTableClick(event) {
@@ -373,6 +424,19 @@ async function confirmDeleteParticipant(id, name) {
   }
 }
 
+async function adminCopyPublicLink() {
+  const url = `${location.origin}${location.pathname}`;
+  try { await navigator.clipboard.writeText(url); } catch {}
+  toast("Link publico copiado.");
+}
+
+async function adminCopyWhatsappMsg() {
+  const url = `${location.origin}${location.pathname}`;
+  const msg = state.publicData?.settings?.publicMessage || "Bolao Copa Amigos";
+  try { await navigator.clipboard.writeText(`${msg}\n\n${url}`); } catch {}
+  toast("Mensagem copiada.");
+}
+
 async function saveSettings() {
   try {
     await api("/api/admin/settings", {
@@ -397,7 +461,6 @@ async function saveResults() {
     scoreA: document.querySelector(`[data-result-a="${match.id}"]`)?.value ?? "",
     scoreB: document.querySelector(`[data-result-b="${match.id}"]`)?.value ?? ""
   }));
-
   try {
     await api("/api/admin/results", {
       method: "PUT",
@@ -428,11 +491,7 @@ async function importGames() {
     toast("Cole um JSON com groups e matches.", "error");
     return;
   }
-
-  if (!window.confirm("Atencao: importar novos jogos vai apagar todos os palpites existentes. Deseja continuar?")) {
-    return;
-  }
-
+  if (!window.confirm("Atencao: importar novos jogos vai apagar todos os palpites existentes. Deseja continuar?")) return;
   try {
     const payload = JSON.parse(dom.importJson.value);
     const result = await api("/api/admin/matches/import", {
@@ -452,26 +511,24 @@ async function importGames() {
 
 async function renderRanking() {
   const ranking = await api("/api/ranking");
-  renderRankingRows(ranking, dom.publicRanking);
+  renderRankingRows(ranking, dom.publicRanking, { showPhone: false });
 }
 
-function renderRankingRows(rows, target) {
+function renderRankingRows(rows, target, { showPhone = true } = {}) {
+  const cols = showPhone ? 6 : 5;
   target.innerHTML = rows.length
     ? rows
-        .map((row) => {
-          return `
-            <tr>
-              <td>${row.position}</td>
-              <td>${escapeHtml(row.name)}</td>
-              <td>${escapeHtml(row.phone)}</td>
-              <td>${row.matchPoints}</td>
-              <td>${row.qualifiedPoints}</td>
-              <td><strong>${row.totalPoints}</strong></td>
-            </tr>
-          `;
-        })
-        .join("")
-    : `<tr><td colspan="6">Ranking vazio.</td></tr>`;
+        .map((row) => `
+          <tr>
+            <td>${row.position}</td>
+            <td>${escapeHtml(row.name)}</td>
+            ${showPhone ? `<td>${escapeHtml(row.phone || "")}</td>` : ""}
+            <td>${row.matchPoints}</td>
+            <td>${row.qualifiedPoints}</td>
+            <td><strong>${row.totalPoints}</strong></td>
+          </tr>
+        `).join("")
+    : `<tr><td colspan="${cols}">Ranking vazio.</td></tr>`;
 }
 
 async function copyShareMessage() {
@@ -487,7 +544,7 @@ async function copyShareMessage() {
 }
 
 function groupName(groups, groupId) {
-  return groups.find((group) => group.id === groupId)?.name || groupId;
+  return groups.find((g) => g.id === groupId)?.name || groupId;
 }
 
 function formatDate(value) {
