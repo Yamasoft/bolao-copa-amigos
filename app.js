@@ -21,7 +21,6 @@ const dom = {
   participantBox: document.querySelector("#participantBox"),
   predictionsForm: document.querySelector("#predictionsForm"),
   matchesList: document.querySelector("#matchesList"),
-  qualifiedList: document.querySelector("#qualifiedList"),
   savePredictions: document.querySelector("#savePredictions"),
   searchPhoneForm: document.querySelector("#searchPhoneForm"),
   searchPhoneInput: document.querySelector("#searchPhoneInput"),
@@ -55,6 +54,11 @@ const dom = {
 
 function normalizePhone(phone) {
   return String(phone || "").replace(/[^\d+]/g, "").slice(0, 24);
+}
+
+function matchOutcome(scoreA, scoreB) {
+  if (scoreA === scoreB) return "D";
+  return scoreA > scoreB ? "A" : "B";
 }
 
 async function api(path, options = {}) {
@@ -223,56 +227,63 @@ async function loadParticipant(id, notify) {
 }
 
 function renderPredictionForms(data) {
-  const matchMap = new Map(data.matchPredictions.map((item) => [item.matchId, item]));
-  const qualifiedMap = new Map();
-  data.qualifiedPredictions.forEach((item) => {
-    if (!qualifiedMap.has(item.groupId)) qualifiedMap.set(item.groupId, []);
-    qualifiedMap.get(item.groupId).push(item.team);
-  });
+  const predMap = new Map(data.matchPredictions.map((p) => [p.matchId, p.choice]));
 
-  dom.matchesList.innerHTML = data.matches
-    .map((match) => {
-      const guess = matchMap.get(match.id) || {};
-      return `
-        <article class="match-card">
-          <div class="match-meta">${escapeHtml(groupName(data.groups, match.groupId))} · ${formatDate(match.date)} · ${escapeHtml(match.time)}</div>
-          <div class="match-line">
-            <strong>${escapeHtml(match.teamA)}</strong>
-            <input type="number" min="0" value="${guess.scoreA ?? ""}" data-match-a="${match.id}" ${data.closed ? "disabled" : ""} />
-            <span>x</span>
-            <input type="number" min="0" value="${guess.scoreB ?? ""}" data-match-b="${match.id}" ${data.closed ? "disabled" : ""} />
-            <strong>${escapeHtml(match.teamB)}</strong>
-          </div>
-        </article>
-      `;
-    })
-    .join("");
-
-  dom.qualifiedList.innerHTML = data.groups
+  dom.matchesList.innerHTML = data.groups
     .map((group) => {
-      const selected = qualifiedMap.get(group.id) || [];
+      const groupMatches = data.matches.filter((m) => m.groupId === group.id);
+      if (!groupMatches.length) return "";
       return `
-        <article class="group-card">
-          <h3>${escapeHtml(group.name)}</h3>
-          <div class="checkbox-grid">
-            ${group.teams
-              .map((team) => {
-                const checked = selected.includes(team) ? "checked" : "";
+        <section class="group-matches">
+          <h3 class="group-title">${escapeHtml(group.name)}</h3>
+          <div class="matches-grid">
+            ${groupMatches
+              .map((match) => {
+                const sel = predMap.get(match.id) || "";
+                const dis = data.closed ? "disabled" : "";
                 return `
-                  <label class="check-row">
-                    <input type="checkbox" value="${escapeAttr(team)}" data-qualified="${group.id}" ${checked} ${data.closed ? "disabled" : ""} />
-                    ${escapeHtml(team)}
-                  </label>
+                  <article class="match-card">
+                    <div class="match-header">
+                      <span>${formatDate(match.date)}</span>
+                      <span>${escapeHtml(match.time)}</span>
+                    </div>
+                    <div class="match-teams">
+                      <span class="team-name">${escapeHtml(match.teamA)}</span>
+                      <span class="match-vs">×</span>
+                      <span class="team-name team-name-right">${escapeHtml(match.teamB)}</span>
+                    </div>
+                    <div class="match-choices">
+                      <button class="choice-btn${sel === "A" ? " selected selected-win" : ""}" data-match="${match.id}" data-choice="A" ${dis} type="button">${escapeHtml(match.teamA)} vence</button>
+                      <button class="choice-btn${sel === "D" ? " selected selected-draw" : ""}" data-match="${match.id}" data-choice="D" ${dis} type="button">Empate</button>
+                      <button class="choice-btn${sel === "B" ? " selected selected-win" : ""}" data-match="${match.id}" data-choice="B" ${dis} type="button">${escapeHtml(match.teamB)} vence</button>
+                    </div>
+                  </article>
                 `;
               })
               .join("")}
           </div>
-        </article>
+        </section>
       `;
     })
     .join("");
 
+  if (!data.closed) {
+    dom.matchesList.querySelectorAll(".choice-btn").forEach((btn) => {
+      btn.addEventListener("click", onChoiceClick);
+    });
+  }
+
   dom.savePredictions.disabled = data.closed;
+}
+
+function onChoiceClick(event) {
+  const btn = event.currentTarget;
+  const matchId = btn.dataset.match;
+  dom.matchesList.querySelectorAll(`[data-match="${matchId}"]`).forEach((b) => {
+    b.classList.remove("selected", "selected-win", "selected-draw");
+  });
+  btn.classList.add("selected");
+  btn.classList.add(btn.dataset.choice === "D" ? "selected-draw" : "selected-win");
 }
 
 async function savePredictions() {
@@ -281,21 +292,13 @@ async function savePredictions() {
     return;
   }
   const matchPredictions = [];
-  state.publicData.matches.forEach((match) => {
-    const scoreA = document.querySelector(`[data-match-a="${match.id}"]`)?.value;
-    const scoreB = document.querySelector(`[data-match-b="${match.id}"]`)?.value;
-    if (scoreA !== "" && scoreB !== "") matchPredictions.push({ matchId: match.id, scoreA: Number(scoreA), scoreB: Number(scoreB) });
-  });
-  const qualifiedPredictions = [];
-  document.querySelectorAll("[data-qualified]:checked").forEach((input) => {
-    const groupId = input.dataset.qualified;
-    const count = qualifiedPredictions.filter((item) => item.groupId === groupId).length;
-    if (count < 2) qualifiedPredictions.push({ groupId, team: input.value });
+  dom.matchesList.querySelectorAll(".choice-btn.selected").forEach((btn) => {
+    matchPredictions.push({ matchId: btn.dataset.match, choice: btn.dataset.choice });
   });
   try {
     const updated = await api(`/api/participants/${encodeURIComponent(state.participantSession)}/predictions`, {
       method: "PUT",
-      body: JSON.stringify({ matchPredictions, qualifiedPredictions })
+      body: JSON.stringify({ matchPredictions })
     });
     renderPredictionForms(updated);
     await renderRanking();
@@ -356,19 +359,28 @@ function renderAdmin() {
         `).join("")
     : `<tr><td colspan="5">Nenhum participante cadastrado.</td></tr>`;
 
+  const outcomeLabel = { A: "Time A venceu", D: "Empate", B: "Time B venceu" };
+
   dom.resultsList.innerHTML = data.matches
-    .map((match) => `
-      <article class="match-card">
-        <div class="match-meta">${escapeHtml(groupName(data.groups, match.groupId))} · ${formatDate(match.date)} · ${escapeHtml(match.time)}</div>
-        <div class="match-line">
-          <strong>${escapeHtml(match.teamA)}</strong>
-          <input type="number" min="0" value="${match.scoreA ?? ""}" data-result-a="${match.id}" />
-          <span>x</span>
-          <input type="number" min="0" value="${match.scoreB ?? ""}" data-result-b="${match.id}" />
-          <strong>${escapeHtml(match.teamB)}</strong>
-        </div>
-      </article>
-    `).join("");
+    .map((match) => {
+      const outcome = (match.scoreA !== null && match.scoreB !== null)
+        ? outcomeLabel[matchOutcome(match.scoreA, match.scoreB)]
+        : null;
+      return `
+        <article class="match-card">
+          <div class="match-meta">${escapeHtml(groupName(data.groups, match.groupId))} · ${formatDate(match.date)} · ${escapeHtml(match.time)}</div>
+          <div class="match-line">
+            <strong>${escapeHtml(match.teamA)}</strong>
+            <input type="number" min="0" value="${match.scoreA ?? ""}" data-result-a="${match.id}" />
+            <span>x</span>
+            <input type="number" min="0" value="${match.scoreB ?? ""}" data-result-b="${match.id}" />
+            <strong>${escapeHtml(match.teamB)}</strong>
+          </div>
+          ${outcome ? `<div class="outcome-line"><span class="outcome-badge">${escapeHtml(outcome)}</span></div>` : ""}
+        </article>
+      `;
+    })
+    .join("");
 
   renderRankingRows(data.ranking, dom.rankingTable, { showPhone: true });
 }
@@ -509,28 +521,6 @@ async function importGames() {
   }
 }
 
-async function renderRanking() {
-  const ranking = await api("/api/ranking");
-  renderRankingRows(ranking, dom.publicRanking, { showPhone: false });
-}
-
-function renderRankingRows(rows, target, { showPhone = true } = {}) {
-  const cols = showPhone ? 6 : 5;
-  target.innerHTML = rows.length
-    ? rows
-        .map((row) => `
-          <tr>
-            <td>${row.position}</td>
-            <td>${escapeHtml(row.name)}</td>
-            ${showPhone ? `<td>${escapeHtml(row.phone || "")}</td>` : ""}
-            <td>${row.matchPoints}</td>
-            <td>${row.qualifiedPoints}</td>
-            <td><strong>${row.totalPoints}</strong></td>
-          </tr>
-        `).join("")
-    : `<tr><td colspan="${cols}">Ranking vazio.</td></tr>`;
-}
-
 async function downloadExport(path, filename) {
   try {
     const response = await fetch(path, {
@@ -550,6 +540,27 @@ async function downloadExport(path, filename) {
   } catch (error) {
     toast(error.message, "error");
   }
+}
+
+async function renderRanking() {
+  const ranking = await api("/api/ranking");
+  renderRankingRows(ranking, dom.publicRanking, { showPhone: false });
+}
+
+function renderRankingRows(rows, target, { showPhone = true } = {}) {
+  const cols = showPhone ? 4 : 3;
+  target.innerHTML = rows.length
+    ? rows
+        .map((row) => `
+          <tr>
+            <td>${row.position}</td>
+            <td>${escapeHtml(row.name)}</td>
+            ${showPhone ? `<td>${escapeHtml(row.phone || "")}</td>` : ""}
+            <td><strong>${row.points}</strong></td>
+          </tr>
+        `)
+        .join("")
+    : `<tr><td colspan="${cols}">Ranking vazio.</td></tr>`;
 }
 
 async function copyShareMessage() {

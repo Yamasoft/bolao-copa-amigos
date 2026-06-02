@@ -114,18 +114,11 @@
 
           <div id="participantBox" class="participant-box">Nenhum participante carregado.</div>
 
-          <div id="predictionsForm" class="grid-two wide-left">
-            <section class="panel">
-              <h3>Placares dos jogos</h3>
-              <div id="matchesList" class="stack"></div>
-            </section>
-
-            <section class="panel">
-              <h3>Classificados por grupo</h3>
-              <p class="hint">Marque ate dois paises por grupo. Cada acerto vale 25 pontos.</p>
-              <div id="qualifiedList" class="stack"></div>
-              <button id="savePredictions" class="primary full" type="button">Salvar palpites</button>
-            </section>
+          <div id="predictionsForm">
+            <div id="matchesList"></div>
+            <div class="save-bar">
+              <button id="savePredictions" class="primary" type="button">Salvar palpites</button>
+            </div>
           </div>
         </section>
 
@@ -142,9 +135,7 @@
                   <tr>
                     <th>Posicao</th>
                     <th>Nome</th>
-                    <th>Jogos</th>
-                    <th>Classificados</th>
-                    <th>Total</th>
+                    <th>Pontos</th>
                   </tr>
                 </thead>
                 <tbody id="publicRanking"></tbody>
@@ -283,9 +274,7 @@
                       <th>Posicao</th>
                       <th>Nome</th>
                       <th>Celular</th>
-                      <th>Jogos</th>
-                      <th>Classificados</th>
-                      <th>Total</th>
+                      <th>Pontos</th>
                     </tr>
                   </thead>
                   <tbody id="rankingTable"></tbody>

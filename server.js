@@ -73,7 +73,26 @@ function ensureStore() {
 
 function readStore() {
   ensureStore();
-  return JSON.parse(fs.readFileSync(dataFile, "utf8"));
+  const store = JSON.parse(fs.readFileSync(dataFile, "utf8"));
+  return migrateStore(store);
+}
+
+function migrateStore(store) {
+  store.qualifiedPredictions = store.qualifiedPredictions || [];
+
+  const hasOldPreds = store.matchPredictions.some(
+    (p) => (p.scoreA !== undefined || p.scoreB !== undefined) && p.choice === undefined
+  );
+  const hasOldQualified = store.qualifiedPredictions.length > 0;
+
+  if (hasOldPreds || hasOldQualified) {
+    backupStore();
+    store.matchPredictions = store.matchPredictions.filter((p) => p.choice !== undefined);
+    store.qualifiedPredictions = [];
+    writeStore(store);
+  }
+
+  return store;
 }
 
 function writeStore(store) {
@@ -156,31 +175,21 @@ function normalizePhone(phone) {
   return String(phone || "").replace(/[^\d+]/g, "").slice(0, 24);
 }
 
-function scoreOutcome(a, b) {
-  if (a === b) return "draw";
-  return a > b ? "A" : "B";
+function matchOutcome(scoreA, scoreB) {
+  if (scoreA === scoreB) return "D";
+  return scoreA > scoreB ? "A" : "B";
 }
 
 function calculateRanking(store) {
   return store.participants
     .map((participant) => {
-      const matchPoints = store.matches.reduce((total, match) => {
+      const points = store.matches.reduce((total, match) => {
         if (match.scoreA === null || match.scoreB === null) return total;
-        const guess = store.matchPredictions.find((item) => item.participantId === participant.id && item.matchId === match.id);
-        if (!guess) return total;
-        if (guess.scoreA === match.scoreA && guess.scoreB === match.scoreB) return total + 5;
-        if (scoreOutcome(guess.scoreA, guess.scoreB) === scoreOutcome(match.scoreA, match.scoreB)) return total + 2;
-        return total;
-      }, 0);
-
-      const qualifiedPoints = store.groups.reduce((total, group) => {
-        const realQualified = qualifiedFromResults(store, group.id);
-        if (!realQualified.length) return total;
-        const guesses = store.qualifiedPredictions
-          .filter((item) => item.participantId === participant.id && item.groupId === group.id)
-          .map((item) => item.team);
-        const hits = new Set(guesses.filter((team) => realQualified.includes(team)));
-        return total + hits.size * 25;
+        const guess = store.matchPredictions.find(
+          (p) => p.participantId === participant.id && p.matchId === match.id
+        );
+        if (!guess || !guess.choice) return total;
+        return guess.choice === matchOutcome(match.scoreA, match.scoreB) ? total + 1 : total;
       }, 0);
 
       return {
@@ -189,43 +198,11 @@ function calculateRanking(store) {
         registrationNumber: participant.registrationNumber,
         name: participant.name,
         phone: participant.phone,
-        matchPoints,
-        qualifiedPoints,
-        totalPoints: matchPoints + qualifiedPoints
+        points
       };
     })
-    .sort((a, b) => b.totalPoints - a.totalPoints || b.matchPoints - a.matchPoints || a.name.localeCompare(b.name))
+    .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name))
     .map((row, index) => ({ ...row, position: index + 1 }));
-}
-
-function qualifiedFromResults(store, groupId) {
-  const group = store.groups.find((item) => item.id === groupId);
-  if (!group) return [];
-  const table = new Map(group.teams.map((team) => [team, { team, points: 0, goalDiff: 0, goalsFor: 0 }]));
-  const groupMatches = store.matches.filter((match) => match.groupId === groupId);
-  if (groupMatches.some((match) => match.scoreA === null || match.scoreB === null)) return [];
-
-  groupMatches.forEach((match) => {
-    const rowA = table.get(match.teamA);
-    const rowB = table.get(match.teamB);
-    rowA.goalsFor += match.scoreA;
-    rowB.goalsFor += match.scoreB;
-    rowA.goalDiff += match.scoreA - match.scoreB;
-    rowB.goalDiff += match.scoreB - match.scoreA;
-    if (match.scoreA === match.scoreB) {
-      rowA.points += 1;
-      rowB.points += 1;
-    } else if (match.scoreA > match.scoreB) {
-      rowA.points += 3;
-    } else {
-      rowB.points += 3;
-    }
-  });
-
-  return [...table.values()]
-    .sort((a, b) => b.points - a.points || b.goalDiff - a.goalDiff || b.goalsFor - a.goalsFor || a.team.localeCompare(b.team))
-    .slice(0, 2)
-    .map((row) => row.team);
 }
 
 function participantPayload(store, participantId) {
@@ -236,43 +213,28 @@ function participantPayload(store, participantId) {
     closed: isClosed(store.settings),
     groups: store.groups,
     matches: store.matches,
-    matchPredictions: store.matchPredictions.filter((item) => item.participantId === participantId),
-    qualifiedPredictions: store.qualifiedPredictions.filter((item) => item.participantId === participantId)
+    matchPredictions: store.matchPredictions.filter((item) => item.participantId === participantId)
   };
 }
 
 function setParticipantPredictions(store, participantId, body) {
   const validMatchIds = new Set(store.matches.map((match) => match.id));
-  const validGroups = new Map(store.groups.map((group) => [group.id, new Set(group.teams)]));
+  const validChoices = new Set(["A", "D", "B"]);
 
   const matchPredictions = Array.isArray(body.matchPredictions) ? body.matchPredictions : [];
-  const qualifiedPredictions = Array.isArray(body.qualifiedPredictions) ? body.qualifiedPredictions : [];
 
   store.matchPredictions = store.matchPredictions.filter((item) => item.participantId !== participantId);
   matchPredictions.forEach((item) => {
-    const scoreA = Number(item.scoreA);
-    const scoreB = Number(item.scoreB);
-    if (!validMatchIds.has(item.matchId) || !Number.isInteger(scoreA) || !Number.isInteger(scoreB) || scoreA < 0 || scoreB < 0) return;
-    store.matchPredictions.push({ participantId, matchId: item.matchId, scoreA, scoreB });
+    if (!validMatchIds.has(item.matchId) || !validChoices.has(item.choice)) return;
+    store.matchPredictions.push({ participantId, matchId: item.matchId, choice: item.choice });
   });
 
   store.qualifiedPredictions = store.qualifiedPredictions.filter((item) => item.participantId !== participantId);
-  qualifiedPredictions.forEach((item) => {
-    const teams = validGroups.get(item.groupId);
-    if (!teams || !teams.has(item.team)) return;
-    const alreadyAdded = store.qualifiedPredictions.some((saved) => {
-      return saved.participantId === participantId && saved.groupId === item.groupId && saved.team === item.team;
-    });
-    const groupCount = store.qualifiedPredictions.filter((saved) => saved.participantId === participantId && saved.groupId === item.groupId).length;
-    if (!alreadyAdded && groupCount < 2) {
-      store.qualifiedPredictions.push({ participantId, groupId: item.groupId, team: item.team });
-    }
-  });
 }
 
 function csvRanking(rows) {
-  const header = ["Posicao", "Nome", "Celular", "Pontos jogos", "Pontos classificados", "Total"];
-  return [header, ...rows.map((row) => [row.position, row.name, row.phone, row.matchPoints, row.qualifiedPoints, row.totalPoints])]
+  const header = ["Posicao", "Nome", "Celular", "Pontos"];
+  return [header, ...rows.map((row) => [row.position, row.name, row.phone, row.points])]
     .map((row) => row.map(csvCell).join(";"))
     .join("\r\n");
 }
@@ -325,7 +287,7 @@ function createRankingPdf(rows) {
       `${columns[2]} 760 Td`,
       "(Celular) Tj",
       `${columns[3]} 760 Td`,
-      "(Total) Tj",
+      "(Pontos) Tj",
       "ET"
     ];
 
@@ -339,7 +301,7 @@ function createRankingPdf(rows) {
       lines.push(`${columns[2]} ${rowY} Td`);
       lines.push(`(${pdfText(row.phone)}) Tj`);
       lines.push(`${columns[3]} ${rowY} Td`);
-      lines.push(`(${pdfText(row.totalPoints)}) Tj`);
+      lines.push(`(${pdfText(row.points)}) Tj`);
       lines.push("ET");
     });
 

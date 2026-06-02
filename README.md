@@ -134,14 +134,27 @@ Os arquivos em `data/` nao sao rastreados pelo Git (listados no `.gitignore`).
 
 ---
 
-## Pontuacao
+## Regra do jogo
+
+Para cada jogo da fase de grupos, o participante escolhe **uma** das tres opcoes:
+
+| Opcao | Codigo |
+|-------|--------|
+| Time A vence | `A` |
+| Empate | `D` |
+| Time B vence | `B` |
+
+**Sem palpite de placar. Sem palpite de classificados.**
+
+### Pontuacao
 
 | Resultado | Pontos |
 |-----------|--------|
-| Placar exato | 5 |
-| Acertou vencedor ou empate (sem placar exato) | 2 |
-| Errou | 0 |
-| Cada classificado correto por grupo | 25 |
+| Acertou o resultado (A, D ou B) | **1 ponto** |
+| Errou | 0 pontos |
+
+O resultado real e informado pelo admin por placar (`scoreA x scoreB`).
+O sistema converte automaticamente: `scoreA > scoreB` = A, `scoreA = scoreB` = D, `scoreB > scoreA` = B.
 
 ---
 
