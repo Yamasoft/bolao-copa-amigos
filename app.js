@@ -6,58 +6,58 @@ const state = {
 };
 
 const TEAM_FLAGS = {
-  "africa do sul": "🇿🇦",
-  alemanha: "🇩🇪",
-  "arabia saudita": "🇸🇦",
-  argelia: "🇩🇿",
-  argentina: "🇦🇷",
-  australia: "🇦🇺",
-  austria: "🇦🇹",
-  belgica: "🇧🇪",
-  bosnia: "🇧🇦",
-  brasil: "🇧🇷",
-  "cabo verde": "🇨🇻",
-  canada: "🇨🇦",
-  catar: "🇶🇦",
-  colombia: "🇨🇴",
-  "coreia do sul": "🇰🇷",
-  "costa do marfim": "🇨🇮",
-  croacia: "🇭🇷",
-  curacao: "🇨🇼",
-  egito: "🇪🇬",
-  equador: "🇪🇨",
-  escocia: "🏴",
-  espanha: "🇪🇸",
-  "estados unidos": "🇺🇸",
-  franca: "🇫🇷",
-  frança: "🇫🇷",
-  gana: "🇬🇭",
-  haiti: "🇭🇹",
-  holanda: "🇳🇱",
-  inglaterra: "🏴",
-  ira: "🇮🇷",
-  iraque: "🇮🇶",
-  japao: "🇯🇵",
-  japão: "🇯🇵",
-  jordania: "🇯🇴",
-  marrocos: "🇲🇦",
-  mexico: "🇲🇽",
-  méxico: "🇲🇽",
-  noruega: "🇳🇴",
-  "nova zelandia": "🇳🇿",
-  panama: "🇵🇦",
-  paraguai: "🇵🇾",
-  portugal: "🇵🇹",
-  "rd congo": "🇨🇩",
-  "republica tcheca": "🇨🇿",
-  senegal: "🇸🇳",
-  suecia: "🇸🇪",
-  suica: "🇨🇭",
-  suiça: "🇨🇭",
-  tunisia: "🇹🇳",
-  turquia: "🇹🇷",
-  uruguai: "🇺🇾",
-  uzbequistao: "🇺🇿"
+  "africa do sul": "ZA",
+  alemanha: "DE",
+  "arabia saudita": "SA",
+  argelia: "DZ",
+  argentina: "AR",
+  australia: "AU",
+  austria: "AT",
+  belgica: "BE",
+  bosnia: "BA",
+  brasil: "BR",
+  "cabo verde": "CV",
+  canada: "CA",
+  catar: "QA",
+  colombia: "CO",
+  "coreia do sul": "KR",
+  "costa do marfim": "CI",
+  croacia: "HR",
+  curacao: "CW",
+  egito: "EG",
+  equador: "EC",
+  escocia: "SCT",
+  espanha: "ES",
+  "estados unidos": "US",
+  franca: "FR",
+  frança: "FR",
+  gana: "GH",
+  haiti: "HT",
+  holanda: "NL",
+  inglaterra: "ENG",
+  ira: "IR",
+  iraque: "IQ",
+  japao: "JP",
+  japão: "JP",
+  jordania: "JO",
+  marrocos: "MA",
+  mexico: "MX",
+  méxico: "MX",
+  noruega: "NO",
+  "nova zelandia": "NZ",
+  panama: "PA",
+  paraguai: "PY",
+  portugal: "PT",
+  "rd congo": "CD",
+  "republica tcheca": "CZ",
+  senegal: "SN",
+  suecia: "SE",
+  suica: "CH",
+  suiça: "CH",
+  tunisia: "TN",
+  turquia: "TR",
+  uruguai: "UY",
+  uzbequistao: "UZ"
 };
 
 const dom = {
@@ -125,9 +125,19 @@ function normalizeTeamName(name) {
     .replace(/\s+/g, " ");
 }
 
-function teamFlag(team) {
+function flagEmoji(code) {
+  if (!/^[A-Z]{2}$/.test(code)) return "";
+  const base = 127397;
+  return String.fromCodePoint(...code.split("").map((letter) => base + letter.charCodeAt(0)));
+}
+
+function teamFlagInfo(team) {
   const raw = String(team || "").toLowerCase().trim();
-  return TEAM_FLAGS[raw] || TEAM_FLAGS[normalizeTeamName(team)] || "🏳️";
+  const code = TEAM_FLAGS[raw] || TEAM_FLAGS[normalizeTeamName(team)] || "";
+  return {
+    code,
+    emoji: flagEmoji(code)
+  };
 }
 
 async function api(path, options = {}) {
@@ -313,8 +323,8 @@ function renderPredictionForms(data) {
               .map((match) => {
                 const sel = predMap.get(match.id) || "";
                 const dis = data.closed ? "disabled" : "";
-                const flagA = teamFlag(match.teamA);
-                const flagB = teamFlag(match.teamB);
+                const flagA = teamFlagInfo(match.teamA);
+                const flagB = teamFlagInfo(match.teamB);
                 return `
                   <article class="match-card">
                     <div class="match-header">
@@ -323,7 +333,7 @@ function renderPredictionForms(data) {
                     </div>
                     <div class="match-choices">
                       <button class="choice-btn team-choice${sel === "A" ? " selected selected-win" : ""}" data-match="${match.id}" data-choice="A" ${dis} type="button" aria-label="${escapeAttr(`${match.teamA} vence`)}">
-                        <span class="team-flag" aria-hidden="true">${flagA}</span>
+                        <span class="team-flag" aria-hidden="true"><span class="flag-emoji">${flagA.emoji}</span><span class="flag-code">${escapeHtml(flagA.code || "--")}</span></span>
                         <span class="team-name">${escapeHtml(match.teamA)}</span>
                         <span class="choice-label">vence</span>
                       </button>
@@ -331,7 +341,7 @@ function renderPredictionForms(data) {
                         <span class="draw-label">Empate</span>
                       </button>
                       <button class="choice-btn team-choice team-choice-right${sel === "B" ? " selected selected-win" : ""}" data-match="${match.id}" data-choice="B" ${dis} type="button" aria-label="${escapeAttr(`${match.teamB} vence`)}">
-                        <span class="team-flag" aria-hidden="true">${flagB}</span>
+                        <span class="team-flag" aria-hidden="true"><span class="flag-emoji">${flagB.emoji}</span><span class="flag-code">${escapeHtml(flagB.code || "--")}</span></span>
                         <span class="team-name">${escapeHtml(match.teamB)}</span>
                         <span class="choice-label">vence</span>
                       </button>

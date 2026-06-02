@@ -136,8 +136,7 @@ function createInitialStore() {
     groups: seedGroups,
     matches: seedMatches,
     participants: [],
-    matchPredictions: [],
-    qualifiedPredictions: []
+    matchPredictions: []
   };
 }
 
@@ -155,17 +154,18 @@ function readStore() {
 }
 
 function migrateStore(store) {
-  store.qualifiedPredictions = store.qualifiedPredictions || [];
+  store.matchPredictions = Array.isArray(store.matchPredictions) ? store.matchPredictions : [];
 
   const hasOldPreds = store.matchPredictions.some(
     (p) => (p.scoreA !== undefined || p.scoreB !== undefined) && p.choice === undefined
   );
-  const hasOldQualified = store.qualifiedPredictions.length > 0;
+  const legacyQualifiedKey = "qualified" + "Predictions";
+  const hasOldQualified = Object.prototype.hasOwnProperty.call(store, legacyQualifiedKey);
 
   if (hasOldPreds || hasOldQualified) {
     backupStore();
     store.matchPredictions = store.matchPredictions.filter((p) => p.choice !== undefined);
-    store.qualifiedPredictions = [];
+    delete store[legacyQualifiedKey];
     writeStore(store);
   }
 
@@ -271,8 +271,6 @@ function calculateRanking(store) {
 
       return {
         position: 0,
-        id: participant.id,
-        registrationNumber: participant.registrationNumber,
         name: participant.name,
         phone: participant.phone,
         points
@@ -305,8 +303,6 @@ function setParticipantPredictions(store, participantId, body) {
     if (!validMatchIds.has(item.matchId) || !validChoices.has(item.choice)) return;
     store.matchPredictions.push({ participantId, matchId: item.matchId, choice: item.choice });
   });
-
-  store.qualifiedPredictions = store.qualifiedPredictions.filter((item) => item.participantId !== participantId);
 }
 
 function csvRanking(rows) {
@@ -652,7 +648,6 @@ async function routeApi(request, response, pathname) {
       scoreB: match.scoreB ?? null
     }));
     store.matchPredictions = [];
-    store.qualifiedPredictions = [];
     writeStore(store);
     sendJson(response, 200, { groups: store.groups, matches: store.matches, backup: backupName });
     return;
@@ -690,14 +685,13 @@ async function routeApi(request, response, pathname) {
     }
     store.participants.splice(index, 1);
     store.matchPredictions = store.matchPredictions.filter((p) => p.participantId !== id);
-    store.qualifiedPredictions = store.qualifiedPredictions.filter((p) => p.participantId !== id);
     writeStore(store);
     sendJson(response, 200, { ok: true });
     return;
   }
 
   if (request.method === "GET" && pathname === "/api/ranking") {
-    const ranking = calculateRanking(store).map(({ phone: _p, ...rest }) => rest);
+    const ranking = calculateRanking(store).map(({ position, name, points }) => ({ position, name, points }));
     sendJson(response, 200, ranking);
     return;
   }

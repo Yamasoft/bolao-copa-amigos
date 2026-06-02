@@ -189,13 +189,13 @@ O sistema converte automaticamente: `scoreA > scoreB` = A, `scoreA = scoreB` = D
 
 - Cadastro com nome e celular (WhatsApp)
 - Numero de inscricao sequencial + ID unico de acesso
-- Palpites de placar para cada jogo da fase de grupos
-- Selecao de dois classificados por grupo
+- Palpite simples por jogo: Time A vence, Empate ou Time B vence
 - Bloqueio automatico por prazo ou bloqueio manual no admin
 - Painel admin com login protegido por token HMAC-SHA256
 - Edicao e exclusao de participante pelo admin
 - Lancamento de resultados reais e recalculo automatico de pontuacao
-- Ranking publico em tempo real
+- Ranking publico em tempo real com posicao, nome e pontos
+- Ranking admin e exportacoes com posicao, nome, celular e pontos
 - Exportacao de ranking em PDF e CSV, protegida por autenticacao admin (`GET /api/admin/exports/ranking.pdf` e `.csv`)
 - Link e mensagem pronta para compartilhar via WhatsApp
 - Importacao de tabela de jogos com validacao completa e backup automatico
