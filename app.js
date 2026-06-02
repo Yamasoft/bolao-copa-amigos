@@ -5,6 +5,61 @@ const state = {
   adminData: null
 };
 
+const TEAM_FLAGS = {
+  "africa do sul": "🇿🇦",
+  alemanha: "🇩🇪",
+  "arabia saudita": "🇸🇦",
+  argelia: "🇩🇿",
+  argentina: "🇦🇷",
+  australia: "🇦🇺",
+  austria: "🇦🇹",
+  belgica: "🇧🇪",
+  bosnia: "🇧🇦",
+  brasil: "🇧🇷",
+  "cabo verde": "🇨🇻",
+  canada: "🇨🇦",
+  catar: "🇶🇦",
+  colombia: "🇨🇴",
+  "coreia do sul": "🇰🇷",
+  "costa do marfim": "🇨🇮",
+  croacia: "🇭🇷",
+  curacao: "🇨🇼",
+  egito: "🇪🇬",
+  equador: "🇪🇨",
+  escocia: "🏴",
+  espanha: "🇪🇸",
+  "estados unidos": "🇺🇸",
+  franca: "🇫🇷",
+  frança: "🇫🇷",
+  gana: "🇬🇭",
+  haiti: "🇭🇹",
+  holanda: "🇳🇱",
+  inglaterra: "🏴",
+  ira: "🇮🇷",
+  iraque: "🇮🇶",
+  japao: "🇯🇵",
+  japão: "🇯🇵",
+  jordania: "🇯🇴",
+  marrocos: "🇲🇦",
+  mexico: "🇲🇽",
+  méxico: "🇲🇽",
+  noruega: "🇳🇴",
+  "nova zelandia": "🇳🇿",
+  panama: "🇵🇦",
+  paraguai: "🇵🇾",
+  portugal: "🇵🇹",
+  "rd congo": "🇨🇩",
+  "republica tcheca": "🇨🇿",
+  senegal: "🇸🇳",
+  suecia: "🇸🇪",
+  suica: "🇨🇭",
+  suiça: "🇨🇭",
+  tunisia: "🇹🇳",
+  turquia: "🇹🇷",
+  uruguai: "🇺🇾",
+  uzbequistao: "🇺🇿"
+};
+
 const dom = {
   nav: document.querySelector("#nav"),
   views: document.querySelectorAll(".view"),
@@ -59,6 +114,20 @@ function normalizePhone(phone) {
 function matchOutcome(scoreA, scoreB) {
   if (scoreA === scoreB) return "D";
   return scoreA > scoreB ? "A" : "B";
+}
+
+function normalizeTeamName(name) {
+  return String(name || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function teamFlag(team) {
+  const raw = String(team || "").toLowerCase().trim();
+  return TEAM_FLAGS[raw] || TEAM_FLAGS[normalizeTeamName(team)] || "🏳️";
 }
 
 async function api(path, options = {}) {
@@ -235,27 +304,37 @@ function renderPredictionForms(data) {
       if (!groupMatches.length) return "";
       return `
         <section class="group-matches">
-          <h3 class="group-title">${escapeHtml(group.name)}</h3>
+          <div class="group-heading">
+            <h3 class="group-title">${escapeHtml(group.name)}</h3>
+            <span>${groupMatches.length} jogos</span>
+          </div>
           <div class="matches-grid">
             ${groupMatches
               .map((match) => {
                 const sel = predMap.get(match.id) || "";
                 const dis = data.closed ? "disabled" : "";
+                const flagA = teamFlag(match.teamA);
+                const flagB = teamFlag(match.teamB);
                 return `
                   <article class="match-card">
                     <div class="match-header">
-                      <span>${formatDate(match.date)}</span>
-                      <span>${escapeHtml(match.time)}</span>
-                    </div>
-                    <div class="match-teams">
-                      <span class="team-name">${escapeHtml(match.teamA)}</span>
-                      <span class="match-vs">×</span>
-                      <span class="team-name team-name-right">${escapeHtml(match.teamB)}</span>
+                      <span class="match-date">${formatDate(match.date)}</span>
+                      <span class="match-time">${escapeHtml(match.time)}</span>
                     </div>
                     <div class="match-choices">
-                      <button class="choice-btn${sel === "A" ? " selected selected-win" : ""}" data-match="${match.id}" data-choice="A" ${dis} type="button">${escapeHtml(match.teamA)} vence</button>
-                      <button class="choice-btn${sel === "D" ? " selected selected-draw" : ""}" data-match="${match.id}" data-choice="D" ${dis} type="button">Empate</button>
-                      <button class="choice-btn${sel === "B" ? " selected selected-win" : ""}" data-match="${match.id}" data-choice="B" ${dis} type="button">${escapeHtml(match.teamB)} vence</button>
+                      <button class="choice-btn team-choice${sel === "A" ? " selected selected-win" : ""}" data-match="${match.id}" data-choice="A" ${dis} type="button" aria-label="${escapeAttr(`${match.teamA} vence`)}">
+                        <span class="team-flag" aria-hidden="true">${flagA}</span>
+                        <span class="team-name">${escapeHtml(match.teamA)}</span>
+                        <span class="choice-label">vence</span>
+                      </button>
+                      <button class="choice-btn draw-choice${sel === "D" ? " selected selected-draw" : ""}" data-match="${match.id}" data-choice="D" ${dis} type="button">
+                        <span class="draw-label">Empate</span>
+                      </button>
+                      <button class="choice-btn team-choice team-choice-right${sel === "B" ? " selected selected-win" : ""}" data-match="${match.id}" data-choice="B" ${dis} type="button" aria-label="${escapeAttr(`${match.teamB} vence`)}">
+                        <span class="team-flag" aria-hidden="true">${flagB}</span>
+                        <span class="team-name">${escapeHtml(match.teamB)}</span>
+                        <span class="choice-label">vence</span>
+                      </button>
                     </div>
                   </article>
                 `;
