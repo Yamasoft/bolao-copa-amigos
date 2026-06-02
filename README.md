@@ -71,6 +71,22 @@ npm start
 4. Cole o JSON na area de texto e clique em **Importar tabela**.
 5. Confirme o aviso — um backup e criado automaticamente antes de qualquer alteracao.
 
+### Fonte dos dados Copa 2026
+
+O arquivo `tabela-exemplo.json` e o seed padrao contem dados **parcialmente confirmados**:
+
+- **Rodada 1 confirmada** via ge.globo.com/futebol/copa-do-mundo (verificado em 02/06/2026):
+  - Grupo A: Franca x Senegal (16/06 16h), Iraque x Noruega (16/06 19h)
+  - Grupo B: Argentina x Argelia (16/06 22h)
+- **Rodadas 2 e 3, demais grupos e horarios**: datas estimadas — confirmar na fonte oficial antes de usar
+
+Para a tabela completa da Copa 2026 (12 grupos, 72 jogos), consultar:
+- FIFA.com → Fixtures
+- ge.globo.com/futebol/copa-do-mundo
+- ESPN/Sofascore
+
+Monte o JSON completo e importe pelo painel admin. O sistema valida os dados antes de salvar.
+
 ### Formato esperado
 
 ```json

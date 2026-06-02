@@ -20,33 +20,33 @@ const contentTypes = {
   ".csv": "text/csv; charset=utf-8"
 };
 
+// Seed baseado nos jogos reais da Copa 2026 visiveis em ge.globo.com/futebol/copa-do-mundo.
+// Rodadas 2 e 3: datas estimadas. Importe a tabela completa pelo painel admin.
 const seedGroups = [
-  { id: "A", name: "Grupo A", teams: ["Brasil", "Japao", "Canada", "Marrocos"] },
-  { id: "B", name: "Grupo B", teams: ["Argentina", "Coreia do Sul", "Mexico", "Suecia"] },
-  { id: "C", name: "Grupo C", teams: ["Franca", "Espanha", "Australia", "Egito"] },
-  { id: "D", name: "Grupo D", teams: ["Inglaterra", "Portugal", "Uruguai", "Gana"] }
+  { id: "A", name: "Grupo A", teams: ["Franca", "Senegal", "Iraque", "Noruega"] },
+  { id: "B", name: "Grupo B", teams: ["Argentina", "Argelia", "Equador", "Japao"] }
 ];
 
-const seedMatches = seedGroups.flatMap((group) => {
-  const [a, b, c, d] = group.teams;
-  return [
-    [a, b],
-    [c, d],
-    [a, c],
-    [d, b],
-    [d, a],
-    [b, c]
-  ].map(([teamA, teamB], index) => ({
-    id: `${group.id}-${index + 1}`,
-    groupId: group.id,
-    date: `2026-06-${String(12 + index).padStart(2, "0")}`,
-    time: `${String(13 + (index % 4) * 2).padStart(2, "0")}:00`,
-    teamA,
-    teamB,
-    scoreA: null,
-    scoreB: null
-  }));
-});
+const seedMatches = [
+  // Grupo A — rodada 1 (confirmado)
+  { id: "A-1", groupId: "A", date: "2026-06-16", time: "16:00", teamA: "Franca",    teamB: "Senegal"   },
+  { id: "A-2", groupId: "A", date: "2026-06-16", time: "19:00", teamA: "Iraque",    teamB: "Noruega"   },
+  // Grupo A — rodada 2 (estimado)
+  { id: "A-3", groupId: "A", date: "2026-06-20", time: "16:00", teamA: "Franca",    teamB: "Iraque"    },
+  { id: "A-4", groupId: "A", date: "2026-06-20", time: "19:00", teamA: "Noruega",   teamB: "Senegal"   },
+  // Grupo A — rodada 3 (estimado, simultaneas)
+  { id: "A-5", groupId: "A", date: "2026-06-24", time: "12:00", teamA: "Noruega",   teamB: "Franca"    },
+  { id: "A-6", groupId: "A", date: "2026-06-24", time: "12:00", teamA: "Senegal",   teamB: "Iraque"    },
+  // Grupo B — rodada 1 (confirmado ARG x AGL; ECU x JPN estimado)
+  { id: "B-1", groupId: "B", date: "2026-06-16", time: "22:00", teamA: "Argentina", teamB: "Argelia"   },
+  { id: "B-2", groupId: "B", date: "2026-06-17", time: "15:00", teamA: "Equador",   teamB: "Japao"     },
+  // Grupo B — rodada 2 (estimado)
+  { id: "B-3", groupId: "B", date: "2026-06-21", time: "16:00", teamA: "Argentina", teamB: "Equador"   },
+  { id: "B-4", groupId: "B", date: "2026-06-21", time: "19:00", teamA: "Japao",     teamB: "Argelia"   },
+  // Grupo B — rodada 3 (estimado, simultaneas)
+  { id: "B-5", groupId: "B", date: "2026-06-25", time: "12:00", teamA: "Japao",     teamB: "Argentina" },
+  { id: "B-6", groupId: "B", date: "2026-06-25", time: "12:00", teamA: "Argelia",   teamB: "Equador"   }
+].map((m) => ({ ...m, scoreA: null, scoreB: null }));
 
 function createInitialStore() {
   return {
