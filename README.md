@@ -73,19 +73,30 @@ npm start
 
 ### Fonte dos dados Copa 2026
 
-O arquivo `tabela-exemplo.json` e o seed padrao contem dados **parcialmente confirmados**:
+O arquivo `tabela-exemplo.json` e o seed contem dados com a seguinte confiabilidade:
 
-- **Rodada 1 confirmada** via ge.globo.com/futebol/copa-do-mundo (verificado em 02/06/2026):
-  - Grupo A: Franca x Senegal (16/06 16h), Iraque x Noruega (16/06 19h)
-  - Grupo B: Argentina x Argelia (16/06 22h)
-- **Rodadas 2 e 3, demais grupos e horarios**: datas estimadas — confirmar na fonte oficial antes de usar
+**Rodada 1 — confirmada** via ge.globo.com/futebol/copa-do-mundo (02/06/2026):
 
-Para a tabela completa da Copa 2026 (12 grupos, 72 jogos), consultar:
-- FIFA.com → Fixtures
-- ge.globo.com/futebol/copa-do-mundo
-- ESPN/Sofascore
+| Grupo | Times | Rodada 1 |
+|-------|-------|----------|
+| A | Mexico, Africa do Sul, Coreia do Sul, Republica Tcheca | 11/06 |
+| B | Canada, Bosnia, Catar, Suica | 12-13/06 |
+| C | Brasil, Marrocos, Haiti, Escocia | 13/06 |
+| D | Estados Unidos, Paraguai, Australia, Turquia | 12-14/06 |
+| E | Alemanha, Curacao, Costa do Marfim, Equador | 14/06 |
+| F | Holanda, Japao, Suecia, Tunisia | 14/06 |
+| G | Belgica, Egito, Ira, Nova Zelandia | 15/06 |
+| H | Espanha, Cabo Verde, Arabia Saudita, Uruguai | 15/06 |
+| I | Franca, Senegal, Iraque, Noruega | 16/06 |
+| J | Argentina, Argelia, Austria, Jordania | 16-17/06 |
 
-Monte o JSON completo e importe pelo painel admin. O sistema valida os dados antes de salvar.
+**Rodadas 2 e 3**: datas e horarios estimados (+4/+8 dias da rodada 1). Confirmar na fonte oficial.
+
+**Grupos K e L**: nao vistos nas capturas de tela disponíveis. Adicione-os via importacao JSON.
+
+Para importar a tabela completa atualizada:
+- ge.globo.com/futebol/copa-do-mundo → tabela completa
+- Admin → Importar jogos → cole o JSON no formato do arquivo `tabela-exemplo.json`
 
 ### Formato esperado
 

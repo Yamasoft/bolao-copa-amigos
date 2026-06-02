@@ -20,32 +20,93 @@ const contentTypes = {
   ".csv": "text/csv; charset=utf-8"
 };
 
-// Seed baseado nos jogos reais da Copa 2026 visiveis em ge.globo.com/futebol/copa-do-mundo.
-// Rodadas 2 e 3: datas estimadas. Importe a tabela completa pelo painel admin.
+// Grupos A-J confirmados via ge.globo.com/futebol/copa-do-mundo (02/06/2026).
+// Rodada 1: datas e horarios confirmados. Rodadas 2 e 3: datas estimadas (+4/+8 dias).
+// Grupos K e L nao vistos nas screenshots — importe a tabela completa pelo painel admin.
 const seedGroups = [
-  { id: "A", name: "Grupo A", teams: ["Franca", "Senegal", "Iraque", "Noruega"] },
-  { id: "B", name: "Grupo B", teams: ["Argentina", "Argelia", "Equador", "Japao"] }
+  { id: "A", name: "Grupo A", teams: ["Mexico", "Africa do Sul", "Coreia do Sul", "Republica Tcheca"] },
+  { id: "B", name: "Grupo B", teams: ["Canada", "Bosnia", "Catar", "Suica"] },
+  { id: "C", name: "Grupo C", teams: ["Brasil", "Marrocos", "Haiti", "Escocia"] },
+  { id: "D", name: "Grupo D", teams: ["Estados Unidos", "Paraguai", "Australia", "Turquia"] },
+  { id: "E", name: "Grupo E", teams: ["Alemanha", "Curacao", "Costa do Marfim", "Equador"] },
+  { id: "F", name: "Grupo F", teams: ["Holanda", "Japao", "Suecia", "Tunisia"] },
+  { id: "G", name: "Grupo G", teams: ["Belgica", "Egito", "Ira", "Nova Zelandia"] },
+  { id: "H", name: "Grupo H", teams: ["Espanha", "Cabo Verde", "Arabia Saudita", "Uruguai"] },
+  { id: "I", name: "Grupo I", teams: ["Franca", "Senegal", "Iraque", "Noruega"] },
+  { id: "J", name: "Grupo J", teams: ["Argentina", "Argelia", "Austria", "Jordania"] }
 ];
 
 const seedMatches = [
-  // Grupo A — rodada 1 (confirmado)
-  { id: "A-1", groupId: "A", date: "2026-06-16", time: "16:00", teamA: "Franca",    teamB: "Senegal"   },
-  { id: "A-2", groupId: "A", date: "2026-06-16", time: "19:00", teamA: "Iraque",    teamB: "Noruega"   },
-  // Grupo A — rodada 2 (estimado)
-  { id: "A-3", groupId: "A", date: "2026-06-20", time: "16:00", teamA: "Franca",    teamB: "Iraque"    },
-  { id: "A-4", groupId: "A", date: "2026-06-20", time: "19:00", teamA: "Noruega",   teamB: "Senegal"   },
-  // Grupo A — rodada 3 (estimado, simultaneas)
-  { id: "A-5", groupId: "A", date: "2026-06-24", time: "12:00", teamA: "Noruega",   teamB: "Franca"    },
-  { id: "A-6", groupId: "A", date: "2026-06-24", time: "12:00", teamA: "Senegal",   teamB: "Iraque"    },
-  // Grupo B — rodada 1 (confirmado ARG x AGL; ECU x JPN estimado)
-  { id: "B-1", groupId: "B", date: "2026-06-16", time: "22:00", teamA: "Argentina", teamB: "Argelia"   },
-  { id: "B-2", groupId: "B", date: "2026-06-17", time: "15:00", teamA: "Equador",   teamB: "Japao"     },
-  // Grupo B — rodada 2 (estimado)
-  { id: "B-3", groupId: "B", date: "2026-06-21", time: "16:00", teamA: "Argentina", teamB: "Equador"   },
-  { id: "B-4", groupId: "B", date: "2026-06-21", time: "19:00", teamA: "Japao",     teamB: "Argelia"   },
-  // Grupo B — rodada 3 (estimado, simultaneas)
-  { id: "B-5", groupId: "B", date: "2026-06-25", time: "12:00", teamA: "Japao",     teamB: "Argentina" },
-  { id: "B-6", groupId: "B", date: "2026-06-25", time: "12:00", teamA: "Argelia",   teamB: "Equador"   }
+  // ── Grupo A ────────────────────────────────────────────
+  { id: "A-1", groupId: "A", date: "2026-06-11", time: "16:00", teamA: "Mexico",          teamB: "Africa do Sul"    },
+  { id: "A-2", groupId: "A", date: "2026-06-11", time: "23:00", teamA: "Coreia do Sul",   teamB: "Republica Tcheca" },
+  { id: "A-3", groupId: "A", date: "2026-06-15", time: "16:00", teamA: "Mexico",          teamB: "Coreia do Sul"    },
+  { id: "A-4", groupId: "A", date: "2026-06-15", time: "20:00", teamA: "Africa do Sul",   teamB: "Republica Tcheca" },
+  { id: "A-5", groupId: "A", date: "2026-06-19", time: "20:00", teamA: "Mexico",          teamB: "Republica Tcheca" },
+  { id: "A-6", groupId: "A", date: "2026-06-19", time: "20:00", teamA: "Africa do Sul",   teamB: "Coreia do Sul"    },
+  // ── Grupo B ────────────────────────────────────────────
+  { id: "B-1", groupId: "B", date: "2026-06-12", time: "16:00", teamA: "Canada",          teamB: "Bosnia"           },
+  { id: "B-2", groupId: "B", date: "2026-06-13", time: "16:00", teamA: "Catar",           teamB: "Suica"            },
+  { id: "B-3", groupId: "B", date: "2026-06-16", time: "16:00", teamA: "Canada",          teamB: "Catar"            },
+  { id: "B-4", groupId: "B", date: "2026-06-17", time: "16:00", teamA: "Bosnia",          teamB: "Suica"            },
+  { id: "B-5", groupId: "B", date: "2026-06-20", time: "20:00", teamA: "Canada",          teamB: "Suica"            },
+  { id: "B-6", groupId: "B", date: "2026-06-20", time: "20:00", teamA: "Bosnia",          teamB: "Catar"            },
+  // ── Grupo C ────────────────────────────────────────────
+  { id: "C-1", groupId: "C", date: "2026-06-13", time: "19:00", teamA: "Brasil",          teamB: "Marrocos"         },
+  { id: "C-2", groupId: "C", date: "2026-06-13", time: "22:00", teamA: "Haiti",           teamB: "Escocia"          },
+  { id: "C-3", groupId: "C", date: "2026-06-17", time: "16:00", teamA: "Brasil",          teamB: "Haiti"            },
+  { id: "C-4", groupId: "C", date: "2026-06-17", time: "20:00", teamA: "Marrocos",        teamB: "Escocia"          },
+  { id: "C-5", groupId: "C", date: "2026-06-21", time: "20:00", teamA: "Brasil",          teamB: "Escocia"          },
+  { id: "C-6", groupId: "C", date: "2026-06-21", time: "20:00", teamA: "Marrocos",        teamB: "Haiti"            },
+  // ── Grupo D ────────────────────────────────────────────
+  { id: "D-1", groupId: "D", date: "2026-06-12", time: "22:00", teamA: "Estados Unidos",  teamB: "Paraguai"         },
+  { id: "D-2", groupId: "D", date: "2026-06-14", time: "01:00", teamA: "Australia",       teamB: "Turquia"          },
+  { id: "D-3", groupId: "D", date: "2026-06-16", time: "19:00", teamA: "Estados Unidos",  teamB: "Australia"        },
+  { id: "D-4", groupId: "D", date: "2026-06-18", time: "16:00", teamA: "Paraguai",        teamB: "Turquia"          },
+  { id: "D-5", groupId: "D", date: "2026-06-20", time: "20:00", teamA: "Estados Unidos",  teamB: "Turquia"          },
+  { id: "D-6", groupId: "D", date: "2026-06-20", time: "20:00", teamA: "Paraguai",        teamB: "Australia"        },
+  // ── Grupo E ────────────────────────────────────────────
+  { id: "E-1", groupId: "E", date: "2026-06-14", time: "14:00", teamA: "Alemanha",        teamB: "Curacao"          },
+  { id: "E-2", groupId: "E", date: "2026-06-14", time: "20:00", teamA: "Costa do Marfim", teamB: "Equador"          },
+  { id: "E-3", groupId: "E", date: "2026-06-18", time: "16:00", teamA: "Alemanha",        teamB: "Costa do Marfim"  },
+  { id: "E-4", groupId: "E", date: "2026-06-18", time: "22:00", teamA: "Curacao",         teamB: "Equador"          },
+  { id: "E-5", groupId: "E", date: "2026-06-22", time: "20:00", teamA: "Alemanha",        teamB: "Equador"          },
+  { id: "E-6", groupId: "E", date: "2026-06-22", time: "20:00", teamA: "Curacao",         teamB: "Costa do Marfim"  },
+  // ── Grupo F ────────────────────────────────────────────
+  { id: "F-1", groupId: "F", date: "2026-06-14", time: "17:00", teamA: "Holanda",         teamB: "Japao"            },
+  { id: "F-2", groupId: "F", date: "2026-06-14", time: "23:00", teamA: "Suecia",          teamB: "Tunisia"          },
+  { id: "F-3", groupId: "F", date: "2026-06-18", time: "17:00", teamA: "Holanda",         teamB: "Suecia"           },
+  { id: "F-4", groupId: "F", date: "2026-06-18", time: "23:00", teamA: "Japao",           teamB: "Tunisia"          },
+  { id: "F-5", groupId: "F", date: "2026-06-22", time: "20:00", teamA: "Holanda",         teamB: "Tunisia"          },
+  { id: "F-6", groupId: "F", date: "2026-06-22", time: "20:00", teamA: "Japao",           teamB: "Suecia"           },
+  // ── Grupo G ────────────────────────────────────────────
+  { id: "G-1", groupId: "G", date: "2026-06-15", time: "16:00", teamA: "Belgica",         teamB: "Egito"            },
+  { id: "G-2", groupId: "G", date: "2026-06-15", time: "22:00", teamA: "Ira",             teamB: "Nova Zelandia"    },
+  { id: "G-3", groupId: "G", date: "2026-06-19", time: "16:00", teamA: "Belgica",         teamB: "Ira"              },
+  { id: "G-4", groupId: "G", date: "2026-06-19", time: "22:00", teamA: "Egito",           teamB: "Nova Zelandia"    },
+  { id: "G-5", groupId: "G", date: "2026-06-23", time: "20:00", teamA: "Belgica",         teamB: "Nova Zelandia"    },
+  { id: "G-6", groupId: "G", date: "2026-06-23", time: "20:00", teamA: "Egito",           teamB: "Ira"              },
+  // ── Grupo H ────────────────────────────────────────────
+  { id: "H-1", groupId: "H", date: "2026-06-15", time: "13:00", teamA: "Espanha",         teamB: "Cabo Verde"       },
+  { id: "H-2", groupId: "H", date: "2026-06-15", time: "19:00", teamA: "Arabia Saudita",  teamB: "Uruguai"          },
+  { id: "H-3", groupId: "H", date: "2026-06-19", time: "13:00", teamA: "Espanha",         teamB: "Arabia Saudita"   },
+  { id: "H-4", groupId: "H", date: "2026-06-19", time: "19:00", teamA: "Cabo Verde",      teamB: "Uruguai"          },
+  { id: "H-5", groupId: "H", date: "2026-06-23", time: "20:00", teamA: "Espanha",         teamB: "Uruguai"          },
+  { id: "H-6", groupId: "H", date: "2026-06-23", time: "20:00", teamA: "Cabo Verde",      teamB: "Arabia Saudita"   },
+  // ── Grupo I ────────────────────────────────────────────
+  { id: "I-1", groupId: "I", date: "2026-06-16", time: "16:00", teamA: "Franca",          teamB: "Senegal"          },
+  { id: "I-2", groupId: "I", date: "2026-06-16", time: "19:00", teamA: "Iraque",          teamB: "Noruega"          },
+  { id: "I-3", groupId: "I", date: "2026-06-20", time: "16:00", teamA: "Franca",          teamB: "Iraque"           },
+  { id: "I-4", groupId: "I", date: "2026-06-20", time: "19:00", teamA: "Senegal",         teamB: "Noruega"          },
+  { id: "I-5", groupId: "I", date: "2026-06-24", time: "20:00", teamA: "Franca",          teamB: "Noruega"          },
+  { id: "I-6", groupId: "I", date: "2026-06-24", time: "20:00", teamA: "Senegal",         teamB: "Iraque"           },
+  // ── Grupo J ────────────────────────────────────────────
+  { id: "J-1", groupId: "J", date: "2026-06-16", time: "22:00", teamA: "Argentina",       teamB: "Argelia"          },
+  { id: "J-2", groupId: "J", date: "2026-06-17", time: "01:00", teamA: "Austria",         teamB: "Jordania"         },
+  { id: "J-3", groupId: "J", date: "2026-06-20", time: "22:00", teamA: "Argentina",       teamB: "Austria"          },
+  { id: "J-4", groupId: "J", date: "2026-06-21", time: "01:00", teamA: "Argelia",         teamB: "Jordania"         },
+  { id: "J-5", groupId: "J", date: "2026-06-24", time: "20:00", teamA: "Argentina",       teamB: "Jordania"         },
+  { id: "J-6", groupId: "J", date: "2026-06-24", time: "20:00", teamA: "Argelia",         teamB: "Austria"          }
 ].map((m) => ({ ...m, scoreA: null, scoreB: null }));
 
 function createInitialStore() {
