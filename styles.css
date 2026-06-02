@@ -747,38 +747,103 @@ button.wa-btn:hover {
   .group-matches {
     margin-left: -2px;
     margin-right: -2px;
-    padding: 12px;
+    margin-bottom: 18px;
+    padding: 10px;
+  }
+
+  .group-heading {
+    margin-bottom: 9px;
+    padding-bottom: 8px;
+  }
+
+  .group-heading span {
+    padding: 4px 8px;
+    font-size: 0.68rem;
+  }
+
+  .group-title {
+    font-size: 0.78rem;
   }
 
   .matches-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .match-card {
-    padding: 12px;
+    padding: 9px;
+    box-shadow: 0 6px 16px rgba(28, 48, 34, 0.06);
+  }
+
+  .match-header {
+    margin-bottom: 7px;
+  }
+
+  .match-date,
+  .match-time {
+    padding: 4px 8px;
+    font-size: 0.68rem;
   }
 
   .match-choices {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
   }
 
   .choice-btn {
-    min-height: 62px;
+    min-height: 52px;
+    padding: 6px 4px;
+    border-width: 1px;
   }
 
   .team-choice {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-rows: 1fr;
-    justify-items: start;
-    text-align: left;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    justify-items: center;
+    gap: 3px;
+    text-align: center;
+  }
+
+  .team-name {
+    max-width: 100%;
+    font-size: 0.75rem;
+    line-height: 1.05;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .team-choice .choice-label {
-    justify-self: end;
+    display: none;
+  }
+
+  .team-flag {
+    min-width: 38px;
+    height: 23px;
+    border-radius: 5px;
+  }
+
+  .flag-emoji {
+    font-size: 0.92rem;
+  }
+
+  .flag-code {
+    margin-left: 2px;
+    font-size: 0.55rem;
   }
 
   .draw-choice {
-    min-height: 56px;
+    min-height: 52px;
+  }
+
+  .draw-label {
+    font-size: 0.76rem;
+  }
+
+  .choice-btn.selected-win,
+  .choice-btn.selected-draw {
+    border-width: 2px;
+    box-shadow: 0 0 0 2px rgba(18, 97, 61, 0.2);
   }
 }
 
