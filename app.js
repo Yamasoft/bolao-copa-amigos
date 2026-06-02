@@ -100,8 +100,8 @@ function bindEvents() {
   dom.saveResults.addEventListener("click", saveResults);
   dom.importGames.addEventListener("click", importGames);
   dom.loadExample.addEventListener("click", loadExampleJson);
-  dom.exportPdf.addEventListener("click", () => window.open("/api/exports/ranking.pdf", "_blank"));
-  dom.exportCsv.addEventListener("click", () => window.open("/api/exports/ranking.csv", "_blank"));
+  dom.exportPdf.addEventListener("click", () => downloadExport("/api/admin/exports/ranking.pdf", "ranking-bolao-copa-amigos.pdf"));
+  dom.exportCsv.addEventListener("click", () => downloadExport("/api/admin/exports/ranking.csv", "ranking-bolao-copa-amigos.csv"));
   dom.saveEditParticipant.addEventListener("click", saveEditParticipant);
   dom.cancelEditParticipant.addEventListener("click", () => { dom.editParticipantPanel.hidden = true; });
   dom.participantsTable.addEventListener("click", onParticipantsTableClick);
@@ -529,6 +529,27 @@ function renderRankingRows(rows, target, { showPhone = true } = {}) {
           </tr>
         `).join("")
     : `<tr><td colspan="${cols}">Ranking vazio.</td></tr>`;
+}
+
+async function downloadExport(path, filename) {
+  try {
+    const response = await fetch(path, {
+      headers: { Authorization: `Bearer ${state.adminToken}` }
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.error || "Erro ao exportar.");
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    toast(error.message, "error");
+  }
 }
 
 async function copyShareMessage() {

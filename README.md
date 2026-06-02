@@ -156,6 +156,9 @@ Os arquivos em `data/` nao sao rastreados pelo Git (listados no `.gitignore`).
 - Edicao e exclusao de participante pelo admin
 - Lancamento de resultados reais e recalculo automatico de pontuacao
 - Ranking publico em tempo real
-- Exportacao de ranking em PDF e CSV (gerados sem bibliotecas externas)
+- Exportacao de ranking em PDF e CSV, protegida por autenticacao admin (`GET /api/admin/exports/ranking.pdf` e `.csv`)
 - Link e mensagem pronta para compartilhar via WhatsApp
 - Importacao de tabela de jogos com validacao completa e backup automatico
+- Busca de inscricao por celular (`GET /api/participants/search?phone=`)
+- Link pessoal `?id=UUID` para acesso direto aos palpites
+- Ranking publico sem exposicao de telefones

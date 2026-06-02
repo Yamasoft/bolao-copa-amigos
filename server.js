@@ -132,7 +132,11 @@ function verifyToken(request) {
   if (!payload || !signature) return false;
 
   const expected = crypto.createHmac("sha256", tokenSecret).update(payload).digest("base64url");
-  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return false;
+  try {
+    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return false;
+  } catch {
+    return false;
+  }
 
   try {
     const parsed = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
@@ -659,7 +663,7 @@ async function routeApi(request, response, pathname) {
     return;
   }
 
-  if (request.method === "GET" && pathname === "/api/exports/ranking.csv") {
+  if (request.method === "GET" && pathname === "/api/admin/exports/ranking.csv") {
     const csv = csvRanking(calculateRanking(store));
     response.writeHead(200, {
       "Content-Type": contentTypes[".csv"],
@@ -669,7 +673,7 @@ async function routeApi(request, response, pathname) {
     return;
   }
 
-  if (request.method === "GET" && pathname === "/api/exports/ranking.pdf") {
+  if (request.method === "GET" && pathname === "/api/admin/exports/ranking.pdf") {
     const pdf = createRankingPdf(calculateRanking(store));
     response.writeHead(200, {
       "Content-Type": contentTypes[".pdf"],
