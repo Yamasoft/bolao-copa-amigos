@@ -1,5 +1,5 @@
 :root {
-  --bg: #f4f7f2;
+  --bg: #f2f6f0;
   --ink: #202821;
   --muted: #657066;
   --line: #dde5dd;
@@ -7,9 +7,12 @@
   --soft: #eef4ef;
   --primary: #12613d;
   --primary-dark: #0d482d;
+  --primary-bright: #1f8f57;
   --accent: #d7b349;
+  --accent-soft: #fff6d9;
   --danger: #9a3939;
   --shadow: 0 16px 40px rgba(28, 48, 34, 0.09);
+  --shadow-strong: 0 22px 55px rgba(20, 42, 27, 0.14);
 }
 
 * {
@@ -18,7 +21,9 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top right, rgba(215, 179, 73, 0.18), transparent 34vw),
+    linear-gradient(180deg, #f7faf4 0%, var(--bg) 42%, #edf4ee 100%);
   color: var(--ink);
   font-family: Segoe UI, Arial, sans-serif;
 }
@@ -45,59 +50,95 @@ button {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 26px;
-  padding: 26px 22px;
-  background: #10261b;
+  gap: 30px;
+  padding: 30px 22px;
+  background:
+    linear-gradient(180deg, rgba(215, 179, 73, 0.11), transparent 28%),
+    linear-gradient(160deg, #123820 0%, #0f281b 46%, #07170f 100%);
   color: #fff;
+  box-shadow: 10px 0 34px rgba(13, 35, 22, 0.16);
 }
 
 .brand {
   display: flex;
-  gap: 12px;
-  align-items: center;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 3px 2px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.13);
 }
 
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  flex: 0 0 auto;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
-  background: var(--accent);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background:
+    radial-gradient(circle at 30% 25%, #fff2bc, var(--accent) 52%, #a9831e 100%);
   color: #132217;
-  font-weight: 800;
+  font-size: 1.5rem;
+  box-shadow: 0 13px 28px rgba(0, 0, 0, 0.22);
 }
 
 .brand h1 {
   margin: 0;
-  font-size: 1.05rem;
+  max-width: 170px;
+  font-size: 1.28rem;
+  line-height: 1.08;
+  font-weight: 900;
 }
 
 .brand p {
-  margin: 3px 0 0;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.86rem;
+  margin: 7px 0 0;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.82rem;
+  line-height: 1.35;
 }
 
 .nav {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .nav button {
-  border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 12px 13px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
   background: transparent;
   color: rgba(255, 255, 255, 0.78);
   text-align: left;
+  font-weight: 800;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
+}
+
+.nav button span {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.09);
+  font-size: 0.96rem;
 }
 
 .nav button.active,
 .nav button:hover {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: linear-gradient(135deg, var(--primary-bright), #167246);
   color: #fff;
+  transform: translateX(2px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16);
+}
+
+.nav button.active span,
+.nav button:hover span {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .status-card {
@@ -105,9 +146,10 @@ button {
   display: grid;
   gap: 7px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 8px;
-  padding: 13px;
-  background: rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .status-card span {
@@ -116,7 +158,7 @@ button {
 }
 
 .content {
-  padding: 28px;
+  padding: 34px;
 }
 
 .view {
@@ -129,12 +171,14 @@ button {
 
 .page-title {
   max-width: 840px;
-  margin-bottom: 22px;
+  margin-bottom: 26px;
 }
 
 .page-title h2 {
   margin: 0;
-  font-size: clamp(1.7rem, 3vw, 2.6rem);
+  font-size: clamp(2rem, 4vw, 3.35rem);
+  line-height: 1.03;
+  letter-spacing: 0;
 }
 
 .page-title p:not(.eyebrow) {
@@ -154,9 +198,13 @@ button {
 .hero,
 .grid-two {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(330px, 0.78fr);
+  gap: 22px;
   align-items: start;
+}
+
+.registration-layout {
+  grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.75fr);
 }
 
 .wide-left {
@@ -214,16 +262,53 @@ button {
 
 .panel {
   margin-bottom: 18px;
-  padding: 18px;
+  padding: 22px;
 }
 
 .panel h3 {
   margin: 0 0 14px;
 }
 
+.panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.panel-heading h3 {
+  margin: 0;
+  font-size: 1.16rem;
+}
+
+.panel-heading p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.panel-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent-soft), #fff 64%);
+  color: var(--primary-dark);
+  font-size: 1.35rem;
+  box-shadow: inset 0 0 0 1px rgba(215, 179, 73, 0.35);
+}
+
+.form-separator {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(18, 97, 61, 0.16), rgba(215, 179, 73, 0.42), transparent);
+}
+
 .form {
   display: grid;
-  gap: 13px;
+  gap: 17px;
+  box-shadow: var(--shadow-strong);
 }
 
 .compact {
@@ -232,20 +317,29 @@ button {
 
 label {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
+  font-weight: 700;
 }
 
 input,
 textarea {
   width: 100%;
-  min-height: 42px;
+  min-height: 50px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 9px 11px;
+  padding: 12px 14px;
   color: var(--ink);
   background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input:focus,
+textarea:focus {
+  border-color: rgba(31, 143, 87, 0.7);
+  box-shadow: 0 0 0 4px rgba(31, 143, 87, 0.12);
+  outline: none;
 }
 
 textarea {
@@ -254,7 +348,7 @@ textarea {
 
 .primary,
 .secondary {
-  min-height: 42px;
+  min-height: 44px;
   border-radius: 8px;
   padding: 9px 13px;
   border: 1px solid transparent;
@@ -262,12 +356,23 @@ textarea {
 }
 
 .primary {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary-bright), var(--primary));
   color: #fff;
+  box-shadow: 0 13px 26px rgba(18, 97, 61, 0.2);
 }
 
 .primary:hover {
-  background: var(--primary-dark);
+  background: linear-gradient(135deg, #249c62, var(--primary-dark));
+}
+
+.cta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 56px;
+  margin-top: 4px;
+  font-size: 1rem;
 }
 
 .secondary {
@@ -299,15 +404,74 @@ textarea {
 .participant-box,
 .result-box {
   display: grid;
-  gap: 6px;
+  gap: 9px;
   margin-bottom: 18px;
-  padding: 14px;
+  padding: 16px;
   color: var(--muted);
 }
 
 .participant-box strong,
 .result-box strong {
   color: var(--ink);
+}
+
+.registration-side {
+  display: grid;
+  gap: 16px;
+}
+
+.registration-card {
+  min-height: 250px;
+}
+
+.registration-card .result-box {
+  margin: 18px 0 0;
+}
+
+.registration-card .result-box:not(:has(strong)) {
+  min-height: 118px;
+  place-items: center;
+  border: 1px dashed rgba(18, 97, 61, 0.28);
+  background:
+    linear-gradient(135deg, rgba(238, 244, 239, 0.9), rgba(255, 246, 217, 0.55));
+  color: var(--primary-dark);
+  font-weight: 800;
+  text-align: center;
+}
+
+#registrationResult:has(strong) {
+  border-color: rgba(18, 97, 61, 0.18);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbf8 100%);
+  text-align: left;
+}
+
+#registrationResult strong:first-child {
+  display: block;
+  border-radius: 8px;
+  padding: 13px 14px;
+  background: #10261b;
+  color: #fff;
+  font-size: 1.05rem;
+}
+
+.info-card {
+  border: 1px solid rgba(215, 179, 73, 0.45);
+  border-radius: 8px;
+  padding: 17px 18px;
+  background: linear-gradient(135deg, #fffdf4, #ffffff);
+  box-shadow: 0 12px 28px rgba(54, 44, 15, 0.07);
+}
+
+.info-card strong {
+  display: block;
+  color: #7a5d12;
+  font-size: 1rem;
+}
+
+.info-card p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
 }
 
 .stack {
@@ -411,14 +575,82 @@ code {
   .sidebar {
     position: static;
     height: auto;
+    gap: 20px;
+    padding: 22px 18px;
+    box-shadow: none;
+  }
+
+  .brand {
+    align-items: center;
+    padding-bottom: 14px;
+  }
+
+  .brand h1 {
+    max-width: none;
+  }
+
+  .nav {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .nav button {
+    justify-content: center;
+    min-height: 52px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+
+  .nav button span {
+    width: 23px;
+    height: 23px;
   }
 
   .content {
-    padding: 18px;
+    padding: 22px 18px;
   }
 }
 
 @media (max-width: 640px) {
+  .brand-mark {
+    width: 48px;
+    height: 48px;
+  }
+
+  .brand h1 {
+    font-size: 1.14rem;
+  }
+
+  .brand p {
+    font-size: 0.78rem;
+  }
+
+  .nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nav button {
+    justify-content: flex-start;
+  }
+
+  .page-title h2 {
+    font-size: 2rem;
+  }
+
+  .panel {
+    padding: 18px;
+  }
+
+  .panel-heading {
+    align-items: flex-start;
+  }
+
+  .cta-button,
+  input,
+  textarea {
+    min-height: 54px;
+  }
+
   .lookup,
   .match-line,
   .checkbox-grid {
@@ -427,6 +659,56 @@ code {
 
   .match-line strong:last-child {
     text-align: left;
+  }
+
+  /* ── Cards de jogos: layout compacto mobile ── */
+  .matches-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .match-card {
+    padding: 10px 12px;
+  }
+
+  .choice-btn {
+    min-height: 52px;
+    padding: 8px 6px;
+  }
+
+  /* Flag + nome lado a lado, sem a linha "vence" */
+  .team-choice {
+    grid-template-rows: none;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Oculta "vence" — tela pequena demais para exibir */
+  .choice-label {
+    display: none;
+  }
+
+  /* Bandeira menor */
+  .team-flag {
+    min-width: 36px;
+    height: 26px;
+  }
+
+  /* Nome do time */
+  .team-name {
+    font-size: 0.82rem;
+    text-align: left;
+    word-break: break-word;
+  }
+
+  /* Empate mais estreito */
+  .match-choices {
+    grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .draw-label {
+    font-size: 0.78rem;
   }
 }
 
@@ -791,8 +1073,8 @@ button.wa-btn:hover {
   }
 
   .choice-btn {
-    min-height: 52px;
-    padding: 6px 4px;
+    min-height: 58px;
+    padding: 7px 4px;
     border-width: 1px;
   }
 
@@ -818,22 +1100,22 @@ button.wa-btn:hover {
   }
 
   .team-flag {
-    min-width: 38px;
-    height: 23px;
+    min-width: 50px;
+    height: 30px;
     border-radius: 5px;
   }
 
   .flag-emoji {
-    font-size: 0.92rem;
+    font-size: 1.18rem;
   }
 
   .flag-code {
     margin-left: 2px;
-    font-size: 0.55rem;
+    font-size: 0.62rem;
   }
 
   .draw-choice {
-    min-height: 52px;
+    min-height: 58px;
   }
 
   .draw-label {
