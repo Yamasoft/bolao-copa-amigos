@@ -11,7 +11,13 @@ window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   state.pwaInstallPrompt = e;
   if (dom.installPwaBtn) dom.installPwaBtn.hidden = false;
+  if (dom.installBanner) dom.installBanner.hidden = false;
 });
+
+// Bloqueia zoom com pinça (iOS ignora user-scalable=no desde iOS 10)
+document.addEventListener('touchmove', (e) => {
+  if (e.touches.length > 1) e.preventDefault();
+}, { passive: false });
 
 const TEAM_FLAGS = {
   "africa do sul": "ZA",
@@ -135,6 +141,9 @@ const dom = {
   regulamentoModal: document.querySelector("#regulamentoModal"),
   closeRegulamento: document.querySelector("#closeRegulamento"),
   installPwaBtn: document.querySelector("#installPwaBtn"),
+  installBanner: document.querySelector("#installBanner"),
+  installBannerBtn: document.querySelector("#installBannerBtn"),
+  installBannerDismiss: document.querySelector("#installBannerDismiss"),
   mobileViewTabs: document.querySelector("#mobileViewTabs"),
   mvtPalpites: document.querySelector("#mvtPalpites"),
   mvtRanking: document.querySelector("#mvtRanking"),
@@ -253,13 +262,17 @@ function bindEvents() {
   dom.openRegulamento.addEventListener("click", () => { dom.regulamentoModal.hidden = false; });
   dom.closeRegulamento.addEventListener("click", () => { dom.regulamentoModal.hidden = true; });
   dom.regulamentoModal.addEventListener("click", (e) => { if (e.target === dom.regulamentoModal) dom.regulamentoModal.hidden = true; });
-  dom.installPwaBtn.addEventListener("click", async () => {
+  async function triggerInstall() {
     if (!state.pwaInstallPrompt) return;
     state.pwaInstallPrompt.prompt();
     await state.pwaInstallPrompt.userChoice;
     state.pwaInstallPrompt = null;
     dom.installPwaBtn.hidden = true;
-  });
+    dom.installBanner.hidden = true;
+  }
+  dom.installPwaBtn.addEventListener("click", triggerInstall);
+  dom.installBannerBtn.addEventListener("click", triggerInstall);
+  dom.installBannerDismiss.addEventListener("click", () => { dom.installBanner.hidden = true; });
   dom.mvtPalpites.addEventListener("click", () => switchMobileViewTab("palpites"));
   dom.mvtRanking.addEventListener("click", () => switchMobileViewTab("ranking"));
 }

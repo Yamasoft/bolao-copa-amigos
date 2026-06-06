@@ -180,7 +180,6 @@
             <p class="mobile-hero-sub">Palpite o placar de cada jogo e dispute entre amigos</p>
             <div class="mobile-hero-actions">
               <button class="mobile-rules-btn" id="openRegulamento" type="button">📋 Regulamento</button>
-              <button class="mobile-install-btn" id="installPwaBtn" type="button" hidden>📲 Instalar app</button>
             </div>
           </div>
 
@@ -415,8 +414,34 @@
             <li>Acompanhe o ranking após os resultados</li>
           </ol>
           <p class="modal-note">Este bolão é 100% recreativo, sem envolvimento de dinheiro ou prêmios.</p>
+          <h3>📲 Instalar o app</h3>
+          <div class="install-instructions">
+            <div class="install-platform">
+              <strong>Android (Chrome)</strong>
+              <ol>
+                <li>Toque no menu <strong>⋮</strong> (canto superior direito)</li>
+                <li>Toque em <strong>"Adicionar à tela inicial"</strong></li>
+                <li>Confirme tocando em <strong>Instalar</strong></li>
+              </ol>
+            </div>
+            <div class="install-platform">
+              <strong>iPhone (Safari)</strong>
+              <ol>
+                <li>Toque no botão <strong>Compartilhar</strong> 🔗 (barra inferior)</li>
+                <li>Role e toque em <strong>"Adicionar à Tela de Início"</strong></li>
+                <li>Toque em <strong>Adicionar</strong></li>
+              </ol>
+            </div>
+          </div>
+          <button id="installPwaBtn" class="install-native-btn" type="button" hidden>📲 Instalar agora (Android)</button>
         </div>
       </div>
+    </div>
+
+    <div id="installBanner" class="install-banner" hidden>
+      <span class="install-banner-text">📲 Instale o app para acesso rápido</span>
+      <button id="installBannerBtn" class="install-banner-yes" type="button">Instalar</button>
+      <button id="installBannerDismiss" class="install-banner-no" type="button">✕</button>
     </div>
 
     <script src="app.js?v=3"></script>
