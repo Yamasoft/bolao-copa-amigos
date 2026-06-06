@@ -178,19 +178,40 @@
               <span class="mobile-id-header-icon" aria-hidden="true">📝</span>
               <div>
                 <strong>Identifica&ccedil;&atilde;o</strong>
-                <span>Para guardar e consultar seus palpites</span>
+                <span>Acesse ou crie sua conta</span>
               </div>
             </div>
-            <div class="mobile-id-fields">
-              <label class="mobile-field">
-                <span class="mobile-field-label"><span aria-hidden="true">👤</span> Nome completo</span>
-                <input id="mobileParticipantName" minlength="3" maxlength="120" autocomplete="name" placeholder="Digite seu nome completo" />
-              </label>
-              <label class="mobile-field">
-                <span class="mobile-field-label"><span aria-hidden="true">📱</span> Celular com WhatsApp</span>
-                <input id="mobileParticipantPhone" minlength="8" maxlength="24" autocomplete="tel" type="tel" placeholder="(11) 99999-9999" />
-              </label>
+            <div class="mobile-id-tabs">
+              <button class="mobile-tab" id="mobileTabEntrar" type="button">Entrar</button>
+              <button class="mobile-tab active" id="mobileTabCriar" type="button">Criar conta</button>
             </div>
+            <div class="mobile-tab-panel" id="tabEntrar">
+              <div class="mobile-id-fields">
+                <label class="mobile-field">
+                  <span class="mobile-field-label"><span aria-hidden="true">📱</span> Celular com WhatsApp</span>
+                  <input id="mobileLoginPhone" type="tel" autocomplete="tel" maxlength="24" placeholder="(11) 99999-9999" />
+                </label>
+                <button id="mobileLoginBtn" class="mobile-entrar-btn" type="button"><span aria-hidden="true">🔍</span> Buscar meus palpites</button>
+              </div>
+            </div>
+            <div class="mobile-tab-panel active" id="tabCriar">
+              <div class="mobile-id-fields">
+                <label class="mobile-field">
+                  <span class="mobile-field-label"><span aria-hidden="true">👤</span> Nome completo</span>
+                  <input id="mobileParticipantName" minlength="3" maxlength="120" autocomplete="name" placeholder="Digite seu nome completo" />
+                </label>
+                <label class="mobile-field">
+                  <span class="mobile-field-label"><span aria-hidden="true">📱</span> Celular com WhatsApp</span>
+                  <input id="mobileParticipantPhone" minlength="8" maxlength="24" autocomplete="tel" type="tel" placeholder="(11) 99999-9999" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mobile-participant-info" id="mobileParticipantInfo" hidden>
+            <span class="mpi-check" aria-hidden="true">✅</span>
+            <div class="mpi-text" id="mpiDetails"></div>
+            <button class="mpi-switch" id="mpiLogout" type="button">Trocar</button>
           </div>
 
           <div id="mobileMatchesList"></div>

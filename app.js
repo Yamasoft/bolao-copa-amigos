@@ -109,7 +109,17 @@ const dom = {
   mobileMatchesList: document.querySelector("#mobileMatchesList"),
   mobileSendBtn: document.querySelector("#mobileSendBtn"),
   mobileParticipantName: document.querySelector("#mobileParticipantName"),
-  mobileParticipantPhone: document.querySelector("#mobileParticipantPhone")
+  mobileParticipantPhone: document.querySelector("#mobileParticipantPhone"),
+  mobileTabEntrar: document.querySelector("#mobileTabEntrar"),
+  mobileTabCriar: document.querySelector("#mobileTabCriar"),
+  tabEntrar: document.querySelector("#tabEntrar"),
+  tabCriar: document.querySelector("#tabCriar"),
+  mobileLoginPhone: document.querySelector("#mobileLoginPhone"),
+  mobileLoginBtn: document.querySelector("#mobileLoginBtn"),
+  mobileIdBox: document.querySelector("#mobileIdBox"),
+  mobileParticipantInfo: document.querySelector("#mobileParticipantInfo"),
+  mpiDetails: document.querySelector("#mpiDetails"),
+  mpiLogout: document.querySelector("#mpiLogout")
 };
 
 function normalizePhone(phone) {
@@ -160,16 +170,27 @@ async function init() {
   await loadPublicData();
   await renderRanking();
   const isMobile = window.innerWidth <= 640;
+
+  if (isMobile) renderMobileInitialMatches();
+
   const urlId = new URLSearchParams(location.search).get("id");
   if (urlId) {
     await loadParticipant(urlId, !isMobile);
-    if (isMobile) prefillMobileForm();
+    if (isMobile && state.participantData) {
+      showMobileIdentified(state.participantData, state.publicData?.closed);
+    }
   } else if (state.participantSession) {
     await loadParticipant(state.participantSession, false);
-    if (isMobile) prefillMobileForm();
-  } else if (isMobile) {
-    renderMobileInitialMatches();
+    if (isMobile) {
+      if (state.participantData) {
+        showMobileIdentified(state.participantData, state.publicData?.closed);
+      } else {
+        state.participantSession = "";
+        localStorage.removeItem("bolaoParticipantId");
+      }
+    }
   }
+
   if (isMobile) showView("mobile-flow");
   if (state.adminToken) await loadAdminData(false);
 }
@@ -188,7 +209,12 @@ function bindEvents() {
   dom.searchPhoneForm.addEventListener("submit", searchByPhone);
   dom.savePredictions.addEventListener("click", savePredictions);
   dom.mobileSendBtn.addEventListener("click", mobileSendPalpites);
+  dom.mobileLoginBtn.addEventListener("click", mobileLogin);
+  dom.mobileTabEntrar.addEventListener("click", () => switchMobileTab("entrar"));
+  dom.mobileTabCriar.addEventListener("click", () => switchMobileTab("criar"));
+  dom.mpiLogout.addEventListener("click", resetMobileIdentification);
   applyPhoneMask(dom.mobileParticipantPhone);
+  applyPhoneMask(dom.mobileLoginPhone);
   dom.adminLoginForm.addEventListener("submit", loginAdmin);
   dom.adminCopyLink.addEventListener("click", adminCopyPublicLink);
   dom.adminCopyWhatsapp.addEventListener("click", adminCopyWhatsappMsg);
@@ -730,8 +756,7 @@ function applyPhoneMask(input) {
 
 function prefillMobileForm() {
   if (!state.participantData) return;
-  dom.mobileParticipantName.value = state.participantData.name;
-  dom.mobileParticipantPhone.value = state.participantData.phone;
+  showMobileIdentified(state.participantData, state.publicData?.closed);
 }
 
 function renderMobileInitialMatches() {
@@ -744,47 +769,101 @@ function renderMobileInitialMatches() {
   });
 }
 
-async function mobileSendPalpites() {
-  const name = dom.mobileParticipantName.value.trim();
-  const phone = normalizePhone(dom.mobileParticipantPhone.value);
+function switchMobileTab(tab) {
+  dom.mobileTabEntrar.classList.toggle("active", tab === "entrar");
+  dom.mobileTabCriar.classList.toggle("active", tab === "criar");
+  dom.tabEntrar.classList.toggle("active", tab === "entrar");
+  dom.tabCriar.classList.toggle("active", tab === "criar");
+  dom.mobileSendBtn.hidden = tab === "entrar";
+}
 
-  if (name.length < 3) {
-    toast("Informe seu nome completo.", "error");
-    return;
-  }
+function showMobileIdentified(participant, closed) {
+  dom.mobileIdBox.hidden = true;
+  dom.mobileParticipantInfo.hidden = false;
+  dom.mpiDetails.innerHTML = `
+    <strong>${escapeHtml(participant.name)}</strong>
+    <span>Inscrição ${participant.registrationNumber}</span>
+  `;
+  dom.mobileSendBtn.hidden = false;
+  dom.mobileSendBtn.disabled = !!closed;
+  dom.mobileSendBtn.innerHTML = closed
+    ? '<span aria-hidden="true">🔒</span>Palpites encerrados'
+    : '<span aria-hidden="true">✓</span>Salvar palpites';
+}
+
+function resetMobileIdentification() {
+  state.participantSession = "";
+  state.participantData = null;
+  localStorage.removeItem("bolaoParticipantId");
+  dom.mobileParticipantInfo.hidden = true;
+  dom.mobileIdBox.hidden = false;
+  dom.mobileSendBtn.hidden = false;
+  dom.mobileSendBtn.disabled = false;
+  dom.mobileSendBtn.innerHTML = '<span aria-hidden="true">⚽</span>Enviar palpites';
+  switchMobileTab("criar");
+}
+
+async function mobileLogin() {
+  const phone = normalizePhone(dom.mobileLoginPhone.value);
   if (phone.length < 8) {
     toast("Informe o celular com DDD.", "error");
     return;
   }
-
   try {
-    if (!state.participantSession) {
+    const found = await api(`/api/participants/search?phone=${encodeURIComponent(phone)}`);
+    state.participantSession = found.id;
+    localStorage.setItem("bolaoParticipantId", found.id);
+    await loadParticipant(found.id, false);
+    if (state.participantData) {
+      showMobileIdentified(state.participantData, state.publicData?.closed);
+      toast(`Bem-vindo, ${found.name}!`);
+    }
+  } catch {
+    toast("Celular não encontrado. Use 'Criar conta'.", "error");
+  }
+}
+
+async function mobileSendPalpites() {
+  if (!state.participantSession) {
+    const name = dom.mobileParticipantName.value.trim();
+    const phone = normalizePhone(dom.mobileParticipantPhone.value);
+    if (name.length < 3) { toast("Informe seu nome completo.", "error"); return; }
+    if (phone.length < 8) { toast("Informe o celular com DDD.", "error"); return; }
+
+    try {
       try {
         const found = await api(`/api/participants/search?phone=${encodeURIComponent(phone)}`);
         state.participantSession = found.id;
         localStorage.setItem("bolaoParticipantId", found.id);
+        await loadParticipant(found.id, false);
       } catch {
         const participant = await api("/api/participants", {
           method: "POST",
           body: JSON.stringify({ name, phone: dom.mobileParticipantPhone.value.trim() })
         });
         state.participantSession = participant.id;
+        state.participantData = participant;
         localStorage.setItem("bolaoParticipantId", participant.id);
       }
+    } catch (error) {
+      toast(error.message, "error");
+      return;
     }
+  }
 
-    const matchPredictions = [];
-    dom.mobileMatchesList.querySelectorAll(".choice-btn.selected").forEach((btn) => {
-      matchPredictions.push({ matchId: btn.dataset.match, choice: btn.dataset.choice });
-    });
+  const matchPredictions = [];
+  dom.mobileMatchesList.querySelectorAll(".choice-btn.selected").forEach((btn) => {
+    matchPredictions.push({ matchId: btn.dataset.match, choice: btn.dataset.choice });
+  });
 
+  try {
     const updated = await api(`/api/participants/${encodeURIComponent(state.participantSession)}/predictions`, {
       method: "PUT",
       body: JSON.stringify({ matchPredictions })
     });
-
     renderPredictionForms(updated);
     await renderRanking();
+    if (state.participantData) showMobileIdentified(state.participantData, updated.closed);
     toast("Palpites enviados!");
   } catch (error) {
     toast(error.message, "error");

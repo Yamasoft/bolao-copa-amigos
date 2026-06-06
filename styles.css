@@ -830,6 +830,128 @@ button.small {
   line-height: 1.5;
 }
 
+/* ── Mobile tabs ── */
+.mobile-id-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--line);
+}
+
+.mobile-tab {
+  flex: 1;
+  padding: 11px 8px;
+  background: none;
+  border: none;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.18s;
+}
+
+.mobile-tab::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--primary);
+  transform: scaleX(0);
+  transition: transform 0.18s;
+}
+
+.mobile-tab.active {
+  color: var(--primary);
+}
+
+.mobile-tab.active::after {
+  transform: scaleX(1);
+}
+
+.mobile-tab-panel {
+  display: none;
+}
+
+.mobile-tab-panel.active {
+  display: block;
+}
+
+/* ── Participant identified card ── */
+.mobile-participant-info[hidden],
+.mobile-id-box[hidden] {
+  display: none !important;
+}
+
+.mobile-participant-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 2px solid var(--primary);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 16px rgba(18, 97, 61, 0.1);
+}
+
+.mpi-check {
+  font-size: 1.5rem;
+  flex: 0 0 auto;
+}
+
+.mpi-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.mpi-text strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mpi-text span {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.mpi-switch {
+  flex: 0 0 auto;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* "Buscar" button inside Entrar tab */
+.mobile-entrar-btn {
+  width: 100%;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.18s;
+}
+
+.mobile-entrar-btn:hover {
+  background: var(--primary-dark);
+}
+
 /* ── Mobile identification card ── */
 .mobile-id-box {
   border-radius: 16px;
