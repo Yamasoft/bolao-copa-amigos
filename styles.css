@@ -830,39 +830,89 @@ button.small {
   line-height: 1.5;
 }
 
-/* ── Mobile form heading ── */
-.mobile-form-heading {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--line);
+/* ── Mobile identification card ── */
+.mobile-id-box {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(18, 97, 61, 0.14);
+  margin-bottom: 20px;
+  border: 1px solid rgba(18, 97, 61, 0.15);
 }
 
-.mobile-form-ico {
-  width: 42px;
-  height: 42px;
+.mobile-id-header {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-bright) 100%);
+  color: #fff;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.mobile-id-header-icon {
+  width: 44px;
+  height: 44px;
   flex: 0 0 auto;
-  background: var(--soft);
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
 }
 
-.mobile-form-heading strong {
+.mobile-id-header strong {
   display: block;
-  font-size: 0.95rem;
-  color: var(--ink);
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #fff;
 }
 
-.mobile-form-heading p {
-  margin: 2px 0 0;
+.mobile-id-header span {
   font-size: 0.78rem;
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.mobile-id-fields {
+  background: #fff;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mobile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mobile-field-label {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mobile-field input {
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  background: var(--soft);
+  transition: border-color 0.18s, background 0.18s;
+  width: 100%;
+}
+
+.mobile-field input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(18, 97, 61, 0.1);
 }
 
 /* Danger button */
