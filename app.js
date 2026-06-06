@@ -122,7 +122,10 @@ const dom = {
   mobileSaveBar: document.querySelector("#mobileSaveBar"),
   mobileIdBox: document.querySelector("#mobileIdBox"),
   mobileParticipantInfo: document.querySelector("#mobileParticipantInfo"),
-  mpiDetails: document.querySelector("#mpiDetails")
+  mpiDetails: document.querySelector("#mpiDetails"),
+  openRegulamento: document.querySelector("#openRegulamento"),
+  regulamentoModal: document.querySelector("#regulamentoModal"),
+  closeRegulamento: document.querySelector("#closeRegulamento")
 };
 
 function normalizePhone(phone) {
@@ -230,6 +233,9 @@ function bindEvents() {
   dom.saveEditParticipant.addEventListener("click", saveEditParticipant);
   dom.cancelEditParticipant.addEventListener("click", () => { dom.editParticipantPanel.hidden = true; });
   dom.participantsTable.addEventListener("click", onParticipantsTableClick);
+  dom.openRegulamento.addEventListener("click", () => { dom.regulamentoModal.hidden = false; });
+  dom.closeRegulamento.addEventListener("click", () => { dom.regulamentoModal.hidden = true; });
+  dom.regulamentoModal.addEventListener("click", (e) => { if (e.target === dom.regulamentoModal) dom.regulamentoModal.hidden = true; });
 }
 
 function toast(text, type = "success") {
@@ -349,7 +355,9 @@ async function loadParticipant(id, notify) {
 }
 
 function renderPredictionForms(data) {
-  const predMap = new Map((data.matchPredictions || []).map((p) => [p.matchId, p.choice]));
+  const predMap = new Map(
+    (data.matchPredictions || []).map((p) => [p.matchId, { homeScore: p.homeScore, awayScore: p.awayScore }])
+  );
 
   const html = data.groups
     .map((group) => {
@@ -364,7 +372,9 @@ function renderPredictionForms(data) {
           <div class="matches-grid">
             ${groupMatches
               .map((match) => {
-                const sel = predMap.get(match.id) || "";
+                const pred = predMap.get(match.id);
+                const homeVal = pred != null && pred.homeScore != null ? pred.homeScore : "";
+                const awayVal = pred != null && pred.awayScore != null ? pred.awayScore : "";
                 const dis = data.closed ? "disabled" : "";
                 const flagA = teamFlagInfo(match.teamA);
                 const flagB = teamFlagInfo(match.teamB);
@@ -374,20 +384,20 @@ function renderPredictionForms(data) {
                       <span class="match-date">${formatDate(match.date)}</span>
                       <span class="match-time">${escapeHtml(match.time)}</span>
                     </div>
-                    <div class="match-choices">
-                      <button class="choice-btn team-choice${sel === "A" ? " selected selected-win" : ""}" data-match="${match.id}" data-choice="A" ${dis} type="button" aria-label="${escapeAttr(`${match.teamA} vence`)}">
-                        <span class="team-flag" aria-hidden="true"><span class="flag-emoji">${flagA.emoji}</span><span class="flag-code">${escapeHtml(flagA.code || "--")}</span></span>
+                    <div class="match-score-row">
+                      <div class="score-team score-team-left">
+                        <span class="team-flag" aria-hidden="true"><span class="flag-emoji">${flagA.emoji}</span></span>
                         <span class="team-name">${escapeHtml(match.teamA)}</span>
-                        <span class="choice-label">vence</span>
-                      </button>
-                      <button class="choice-btn draw-choice${sel === "D" ? " selected selected-draw" : ""}" data-match="${match.id}" data-choice="D" ${dis} type="button">
-                        <span class="draw-label">Empate</span>
-                      </button>
-                      <button class="choice-btn team-choice team-choice-right${sel === "B" ? " selected selected-win" : ""}" data-match="${match.id}" data-choice="B" ${dis} type="button" aria-label="${escapeAttr(`${match.teamB} vence`)}">
-                        <span class="team-flag" aria-hidden="true"><span class="flag-emoji">${flagB.emoji}</span><span class="flag-code">${escapeHtml(flagB.code || "--")}</span></span>
+                      </div>
+                      <div class="score-inputs">
+                        <input class="score-input" type="number" min="0" max="99" data-match="${match.id}" data-side="home" value="${homeVal}" ${dis} inputmode="numeric" aria-label="Gols ${escapeAttr(match.teamA)}" />
+                        <span class="score-sep">×</span>
+                        <input class="score-input" type="number" min="0" max="99" data-match="${match.id}" data-side="away" value="${awayVal}" ${dis} inputmode="numeric" aria-label="Gols ${escapeAttr(match.teamB)}" />
+                      </div>
+                      <div class="score-team score-team-right">
+                        <span class="team-flag" aria-hidden="true"><span class="flag-emoji">${flagB.emoji}</span></span>
                         <span class="team-name">${escapeHtml(match.teamB)}</span>
-                        <span class="choice-label">vence</span>
-                      </button>
+                      </div>
                     </div>
                   </article>
                 `;
@@ -402,26 +412,24 @@ function renderPredictionForms(data) {
   [dom.matchesList, dom.mobileMatchesList].forEach((container) => {
     if (!container) return;
     container.innerHTML = html;
-    if (!data.closed) {
-      container.querySelectorAll(".choice-btn").forEach((btn) => {
-        btn.addEventListener("click", onChoiceClick);
-      });
-    }
   });
 
   dom.savePredictions.disabled = data.closed;
   if (dom.mobileSendBtn) dom.mobileSendBtn.disabled = data.closed;
 }
 
-function onChoiceClick(event) {
-  const btn = event.currentTarget;
-  const matchId = btn.dataset.match;
-  const container = btn.closest("#matchesList, #mobileMatchesList");
-  container.querySelectorAll(`[data-match="${matchId}"]`).forEach((b) => {
-    b.classList.remove("selected", "selected-win", "selected-draw");
+function collectScorePredictions(container) {
+  const scores = {};
+  container.querySelectorAll(".score-input").forEach((input) => {
+    const matchId = input.dataset.match;
+    const side = input.dataset.side;
+    if (!scores[matchId]) scores[matchId] = {};
+    scores[matchId][side] = input.value;
   });
-  btn.classList.add("selected");
-  btn.classList.add(btn.dataset.choice === "D" ? "selected-draw" : "selected-win");
+  return Object.entries(scores)
+    .filter(([, v]) => v.home !== "" && v.away !== "")
+    .map(([matchId, v]) => ({ matchId, homeScore: parseInt(v.home), awayScore: parseInt(v.away) }))
+    .filter((p) => !isNaN(p.homeScore) && !isNaN(p.awayScore));
 }
 
 async function savePredictions() {
@@ -429,10 +437,7 @@ async function savePredictions() {
     toast("Carregue ou cadastre um participante primeiro.", "error");
     return;
   }
-  const matchPredictions = [];
-  dom.matchesList.querySelectorAll(".choice-btn.selected").forEach((btn) => {
-    matchPredictions.push({ matchId: btn.dataset.match, choice: btn.dataset.choice });
-  });
+  const matchPredictions = collectScorePredictions(dom.matchesList);
   try {
     const updated = await api(`/api/participants/${encodeURIComponent(state.participantSession)}/predictions`, {
       method: "PUT",
@@ -841,10 +846,7 @@ async function mobileRegister() {
 async function mobileSendPalpites() {
   if (!state.participantSession) { toast("Faça login ou crie uma conta primeiro.", "error"); return; }
 
-  const matchPredictions = [];
-  dom.mobileMatchesList.querySelectorAll(".choice-btn.selected").forEach((btn) => {
-    matchPredictions.push({ matchId: btn.dataset.match, choice: btn.dataset.choice });
-  });
+  const matchPredictions = collectScorePredictions(dom.mobileMatchesList);
 
   try {
     const updated = await api(`/api/participants/${encodeURIComponent(state.participantSession)}/predictions`, {

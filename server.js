@@ -274,8 +274,14 @@ function calculateRanking(store) {
         const guess = store.matchPredictions.find(
           (p) => p.participantId === participant.id && p.matchId === match.id
         );
-        if (!guess || !guess.choice) return total;
-        return guess.choice === matchOutcome(match.scoreA, match.scoreB) ? total + 1 : total;
+        if (!guess) return total;
+        const realOutcome = matchOutcome(match.scoreA, match.scoreB);
+        if (guess.homeScore !== undefined && guess.homeScore !== null) {
+          if (guess.homeScore === match.scoreA && guess.awayScore === match.scoreB) return total + 3;
+          if (matchOutcome(guess.homeScore, guess.awayScore) === realOutcome) return total + 1;
+          return total;
+        }
+        return guess.choice === realOutcome ? total + 1 : total;
       }, 0);
 
       return {
@@ -303,14 +309,17 @@ function participantPayload(store, participantId) {
 
 function setParticipantPredictions(store, participantId, body) {
   const validMatchIds = new Set(store.matches.map((match) => match.id));
-  const validChoices = new Set(["A", "D", "B"]);
 
   const matchPredictions = Array.isArray(body.matchPredictions) ? body.matchPredictions : [];
 
   store.matchPredictions = store.matchPredictions.filter((item) => item.participantId !== participantId);
   matchPredictions.forEach((item) => {
-    if (!validMatchIds.has(item.matchId) || !validChoices.has(item.choice)) return;
-    store.matchPredictions.push({ participantId, matchId: item.matchId, choice: item.choice });
+    if (!validMatchIds.has(item.matchId)) return;
+    const home = parseInt(item.homeScore);
+    const away = parseInt(item.awayScore);
+    if (!isNaN(home) && !isNaN(away) && home >= 0 && away >= 0) {
+      store.matchPredictions.push({ participantId, matchId: item.matchId, homeScore: home, awayScore: away });
+    }
   });
 }
 

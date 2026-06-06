@@ -1476,3 +1476,201 @@ button.wa-btn:hover {
   overflow-x: auto;
   white-space: pre;
 }
+
+/* ── Score inputs (match cards) ── */
+.match-score-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px;
+}
+
+.score-team {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.score-team-left { text-align: center; }
+.score-team-right { text-align: center; }
+
+.score-team .team-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.score-team .flag-emoji {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.score-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.score-input {
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: var(--soft);
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-align: center;
+  color: var(--primary);
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+  -moz-appearance: textfield;
+}
+
+.score-input::-webkit-outer-spin-button,
+.score-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.score-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(18, 97, 61, 0.15);
+}
+
+.score-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.score-sep {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--muted);
+}
+
+/* ── Regulamento button in hero ── */
+.mobile-rules-btn {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s;
+  letter-spacing: 0.02em;
+}
+
+.mobile-rules-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* ── Regulamento modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+
+.modal-overlay[hidden] {
+  display: none !important;
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 28px 24px 36px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--soft);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.modal-close:hover {
+  background: var(--line);
+}
+
+.modal-title {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--primary);
+  margin: 0 0 18px;
+}
+
+.modal-body h3 {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 18px 0 10px;
+}
+
+.modal-body h3:first-child { margin-top: 0; }
+
+.modal-body ul,
+.modal-body ol {
+  padding-left: 20px;
+  margin: 0 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-body li {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.modal-body strong {
+  color: var(--primary);
+}
+
+.modal-note {
+  margin-top: 18px;
+  padding: 10px 14px;
+  background: var(--soft);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
+}
