@@ -1,5 +1,6 @@
 const state = {
   publicData: null,
+  participantData: null,
   participantSession: localStorage.getItem("bolaoParticipantId") || "",
   adminToken: localStorage.getItem("bolaoAdminToken") || "",
   adminData: null
@@ -104,7 +105,11 @@ const dom = {
   publicRanking: document.querySelector("#publicRanking"),
   exportPdf: document.querySelector("#exportPdf"),
   exportCsv: document.querySelector("#exportCsv"),
-  toast: document.querySelector("#toast")
+  toast: document.querySelector("#toast"),
+  mobileMatchesList: document.querySelector("#mobileMatchesList"),
+  mobileSendBtn: document.querySelector("#mobileSendBtn"),
+  mobileParticipantName: document.querySelector("#mobileParticipantName"),
+  mobileParticipantPhone: document.querySelector("#mobileParticipantPhone")
 };
 
 function normalizePhone(phone) {
@@ -154,12 +159,18 @@ async function init() {
   bindEvents();
   await loadPublicData();
   await renderRanking();
+  const isMobile = window.innerWidth <= 640;
   const urlId = new URLSearchParams(location.search).get("id");
   if (urlId) {
-    await loadParticipant(urlId, true);
+    await loadParticipant(urlId, !isMobile);
+    if (isMobile) prefillMobileForm();
   } else if (state.participantSession) {
     await loadParticipant(state.participantSession, false);
+    if (isMobile) prefillMobileForm();
+  } else if (isMobile) {
+    renderMobileInitialMatches();
   }
+  if (isMobile) showView("mobile-flow");
   if (state.adminToken) await loadAdminData(false);
 }
 
@@ -176,6 +187,8 @@ function bindEvents() {
   });
   dom.searchPhoneForm.addEventListener("submit", searchByPhone);
   dom.savePredictions.addEventListener("click", savePredictions);
+  dom.mobileSendBtn.addEventListener("click", mobileSendPalpites);
+  applyPhoneMask(dom.mobileParticipantPhone);
   dom.adminLoginForm.addEventListener("submit", loginAdmin);
   dom.adminCopyLink.addEventListener("click", adminCopyPublicLink);
   dom.adminCopyWhatsapp.addEventListener("click", adminCopyWhatsappMsg);
@@ -284,6 +297,7 @@ async function loadParticipant(id, notify) {
   try {
     const data = await api(`/api/participants/${encodeURIComponent(id)}`);
     state.participantSession = id;
+    state.participantData = data.participant;
     localStorage.setItem("bolaoParticipantId", id);
 
     const deadline = state.publicData?.settings?.deadlineAt;
@@ -306,9 +320,9 @@ async function loadParticipant(id, notify) {
 }
 
 function renderPredictionForms(data) {
-  const predMap = new Map(data.matchPredictions.map((p) => [p.matchId, p.choice]));
+  const predMap = new Map((data.matchPredictions || []).map((p) => [p.matchId, p.choice]));
 
-  dom.matchesList.innerHTML = data.groups
+  const html = data.groups
     .map((group) => {
       const groupMatches = data.matches.filter((m) => m.groupId === group.id);
       if (!groupMatches.length) return "";
@@ -356,19 +370,25 @@ function renderPredictionForms(data) {
     })
     .join("");
 
-  if (!data.closed) {
-    dom.matchesList.querySelectorAll(".choice-btn").forEach((btn) => {
-      btn.addEventListener("click", onChoiceClick);
-    });
-  }
+  [dom.matchesList, dom.mobileMatchesList].forEach((container) => {
+    if (!container) return;
+    container.innerHTML = html;
+    if (!data.closed) {
+      container.querySelectorAll(".choice-btn").forEach((btn) => {
+        btn.addEventListener("click", onChoiceClick);
+      });
+    }
+  });
 
   dom.savePredictions.disabled = data.closed;
+  if (dom.mobileSendBtn) dom.mobileSendBtn.disabled = data.closed;
 }
 
 function onChoiceClick(event) {
   const btn = event.currentTarget;
   const matchId = btn.dataset.match;
-  dom.matchesList.querySelectorAll(`[data-match="${matchId}"]`).forEach((b) => {
+  const container = btn.closest("#matchesList, #mobileMatchesList");
+  container.querySelectorAll(`[data-match="${matchId}"]`).forEach((b) => {
     b.classList.remove("selected", "selected-win", "selected-draw");
   });
   btn.classList.add("selected");
@@ -689,6 +709,86 @@ function escapeHtml(value) {
 
 function escapeAttr(value) {
   return escapeHtml(value);
+}
+
+function applyPhoneMask(input) {
+  input.addEventListener("input", () => {
+    let v = input.value.replace(/\D/g, "").slice(0, 11);
+    if (v.length === 0) {
+      input.value = "";
+    } else if (v.length <= 2) {
+      input.value = `(${v}`;
+    } else if (v.length <= 7) {
+      input.value = `(${v.slice(0, 2)}) ${v.slice(2)}`;
+    } else if (v.length <= 10) {
+      input.value = `(${v.slice(0, 2)}) ${v.slice(2, 6)}-${v.slice(6)}`;
+    } else {
+      input.value = `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
+    }
+  });
+}
+
+function prefillMobileForm() {
+  if (!state.participantData) return;
+  dom.mobileParticipantName.value = state.participantData.name;
+  dom.mobileParticipantPhone.value = state.participantData.phone;
+}
+
+function renderMobileInitialMatches() {
+  if (!state.publicData?.matches?.length) return;
+  renderPredictionForms({
+    groups: state.publicData.groups,
+    matches: state.publicData.matches,
+    matchPredictions: [],
+    closed: state.publicData.closed
+  });
+}
+
+async function mobileSendPalpites() {
+  const name = dom.mobileParticipantName.value.trim();
+  const phone = normalizePhone(dom.mobileParticipantPhone.value);
+
+  if (name.length < 3) {
+    toast("Informe seu nome completo.", "error");
+    return;
+  }
+  if (phone.length < 8) {
+    toast("Informe o celular com DDD.", "error");
+    return;
+  }
+
+  try {
+    if (!state.participantSession) {
+      try {
+        const found = await api(`/api/participants/search?phone=${encodeURIComponent(phone)}`);
+        state.participantSession = found.id;
+        localStorage.setItem("bolaoParticipantId", found.id);
+      } catch {
+        const participant = await api("/api/participants", {
+          method: "POST",
+          body: JSON.stringify({ name, phone: dom.mobileParticipantPhone.value.trim() })
+        });
+        state.participantSession = participant.id;
+        localStorage.setItem("bolaoParticipantId", participant.id);
+      }
+    }
+
+    const matchPredictions = [];
+    dom.mobileMatchesList.querySelectorAll(".choice-btn.selected").forEach((btn) => {
+      matchPredictions.push({ matchId: btn.dataset.match, choice: btn.dataset.choice });
+    });
+
+    const updated = await api(`/api/participants/${encodeURIComponent(state.participantSession)}/predictions`, {
+      method: "PUT",
+      body: JSON.stringify({ matchPredictions })
+    });
+
+    renderPredictionForms(updated);
+    await renderRanking();
+    toast("Palpites enviados!");
+  } catch (error) {
+    toast(error.message, "error");
+  }
 }
 
 init().catch((error) => {

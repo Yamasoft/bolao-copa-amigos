@@ -4,25 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bolao Copa Amigos</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=2" />
   </head>
   <body>
     <div class="shell">
       <aside class="sidebar">
         <div class="brand">
-          <span class="brand-mark">B</span>
-          <div>
-            <h1>Bolao Copa Amigos</h1>
+          <span class="brand-mark" aria-hidden="true">🏆</span>
+          <div class="brand-copy">
+            <h1>Bol&atilde;o Copa Amigos</h1>
             <p>Palpites recreativos, sem dinheiro</p>
           </div>
         </div>
 
         <nav id="nav" class="nav">
-          <button class="active" type="button" data-view="inicio">Inicio</button>
-          <button type="button" data-view="cadastro">Cadastro</button>
-          <button type="button" data-view="palpites">Palpites</button>
-          <button type="button" data-view="ranking">Ranking</button>
-          <button type="button" data-view="admin">Admin</button>
+          <button class="active" type="button" data-view="inicio"><span aria-hidden="true">🏟️</span>Inicio</button>
+          <button type="button" data-view="cadastro"><span aria-hidden="true">📝</span>Cadastro</button>
+          <button type="button" data-view="palpites"><span aria-hidden="true">⚽</span>Palpites</button>
+          <button type="button" data-view="ranking"><span aria-hidden="true">🏅</span>Ranking</button>
+          <button type="button" data-view="admin"><span aria-hidden="true">🛠️</span>Admin</button>
         </nav>
 
         <div class="status-card">
@@ -62,26 +62,47 @@
         <section id="cadastro" class="view">
           <div class="page-title">
             <p class="eyebrow">Participante</p>
-            <h2>Cadastro</h2>
+            <h2>Entre no bol&atilde;o da turma</h2>
+            <p>Informe seus dados para gerar sua inscricao e guardar seu ID de participante.</p>
           </div>
 
-          <div class="grid-two">
+          <div class="grid-two registration-layout">
             <form id="registerForm" class="panel form">
-              <h3>Novo participante</h3>
+              <div class="panel-heading">
+                <span class="panel-icon" aria-hidden="true">📝</span>
+                <div>
+                  <h3>Novo participante</h3>
+                  <p>Cadastre nome e WhatsApp para receber seu identificador.</p>
+                </div>
+              </div>
+              <div class="form-separator"></div>
               <label>
                 Nome completo
-                <input id="participantName" required minlength="3" maxlength="120" autocomplete="name" />
+                <input id="participantName" required minlength="3" maxlength="120" autocomplete="name" placeholder="Digite seu nome completo" />
               </label>
               <label>
                 Celular com WhatsApp
-                <input id="participantPhone" required minlength="8" maxlength="24" autocomplete="tel" placeholder="Ex.: 11999999999" />
+                <input id="participantPhone" required minlength="8" maxlength="24" autocomplete="tel" placeholder="Ex.: (11) 99999-9999" />
               </label>
-              <button class="primary" type="submit">Gerar inscricao</button>
+              <button class="primary cta-button" type="submit"><span aria-hidden="true">⚽</span>Gerar inscricao</button>
             </form>
 
-            <div class="panel">
-              <h3>Inscricao</h3>
-              <div id="registrationResult" class="result-box">O ID do participante aparece aqui depois do cadastro.</div>
+            <div class="registration-side">
+              <div class="panel registration-card">
+                <div class="panel-heading">
+                  <span class="panel-icon" aria-hidden="true">🏆</span>
+                  <div>
+                    <h3>Inscricao</h3>
+                    <p>Seu acesso para voltar aos palpites.</p>
+                  </div>
+                </div>
+                <div id="registrationResult" class="result-box">O ID do participante aparece aqui depois do cadastro.</div>
+              </div>
+
+              <div class="info-card">
+                <strong>Bol&atilde;o 100% recreativo</strong>
+                <p>Este bol&atilde;o e apenas para diversao entre amigos. Nao envolvemos dinheiro ou premios.</p>
+              </div>
             </div>
           </div>
         </section>
@@ -142,6 +163,39 @@
               </table>
             </div>
           </section>
+        </section>
+
+        <section id="mobile-flow" class="view">
+          <div class="mobile-hero">
+            <span class="mobile-hero-badge">Copa do Mundo 2026</span>
+            <div class="mobile-hero-icon-wrap" aria-hidden="true">🏆</div>
+            <h2 class="mobile-hero-title">Bol&atilde;o Copa Amigos</h2>
+            <p class="mobile-hero-sub">Escolha o resultado de cada jogo e envie seus palpites</p>
+          </div>
+
+          <div class="panel form mobile-id-box" id="mobileIdBox">
+            <div class="mobile-form-heading">
+              <span class="mobile-form-ico" aria-hidden="true">📝</span>
+              <div>
+                <strong>Identifica&ccedil;&atilde;o</strong>
+                <p>Para guardar e consultar seus palpites</p>
+              </div>
+            </div>
+            <label>
+              Nome completo
+              <input id="mobileParticipantName" minlength="3" maxlength="120" autocomplete="name" placeholder="Digite seu nome completo" />
+            </label>
+            <label>
+              Celular com WhatsApp
+              <input id="mobileParticipantPhone" minlength="8" maxlength="24" autocomplete="tel" type="tel" placeholder="(11) 99999-9999" />
+            </label>
+          </div>
+
+          <div id="mobileMatchesList"></div>
+
+          <div class="save-bar mobile-save-bar">
+            <button id="mobileSendBtn" class="primary" type="button"><span aria-hidden="true">⚽</span>Enviar palpites</button>
+          </div>
         </section>
 
         <section id="admin" class="view">
@@ -287,6 +341,6 @@
     </div>
 
     <div id="toast" role="alert" class="toast"></div>
-    <script src="app.js"></script>
+    <script src="app.js?v=2"></script>
   </body>
 </html>
