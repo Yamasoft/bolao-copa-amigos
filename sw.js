@@ -1,8 +1,8 @@
-const CACHE = 'bolao-v4';
+const CACHE = 'bolao-v5';
 const ASSETS = [
   '/',
-  '/app.js?v=3',
-  '/styles.css?v=3',
+  '/app.js?v=4',
+  '/styles.css?v=4',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'

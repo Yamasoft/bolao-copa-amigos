@@ -2,7 +2,6 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
-const zlib = require("node:zlib");
 
 const root = __dirname;
 const port = Number(process.env.PORT || 4173);
@@ -12,57 +11,6 @@ const adminUser = process.env.ADMIN_USER || "admin";
 const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
 const tokenSecret = process.env.TOKEN_SECRET || "bolao-copa-amigos-dev-secret";
 
-// ── PNG icon generator (no external deps) ──────────────────────────────────
-function pngCrc32(buf) {
-  let c = 0xFFFFFFFF;
-  for (let i = 0; i < buf.length; i++) {
-    c ^= buf[i];
-    for (let j = 0; j < 8; j++) c = (c >>> 1) ^ (c & 1 ? 0xEDB88320 : 0);
-  }
-  return (c ^ 0xFFFFFFFF) >>> 0;
-}
-
-function pngChunk(type, data) {
-  const t = Buffer.from(type, "ascii");
-  const len = Buffer.alloc(4);
-  len.writeUInt32BE(data.length, 0);
-  const crcInput = Buffer.concat([t, data]);
-  const crc = Buffer.alloc(4);
-  crc.writeUInt32BE(pngCrc32(crcInput), 0);
-  return Buffer.concat([len, t, data, crc]);
-}
-
-function makeSolidPng(size, hexColor) {
-  const r = parseInt(hexColor.slice(1, 3), 16);
-  const g = parseInt(hexColor.slice(3, 5), 16);
-  const b = parseInt(hexColor.slice(5, 7), 16);
-
-  const ihdrData = Buffer.alloc(13);
-  ihdrData.writeUInt32BE(size, 0);
-  ihdrData.writeUInt32BE(size, 4);
-  ihdrData[8] = 8; // bit depth
-  ihdrData[9] = 2; // RGB color type
-
-  const rowBytes = 1 + size * 3;
-  const raw = Buffer.alloc(size * rowBytes);
-  for (let y = 0; y < size; y++) {
-    const off = y * rowBytes;
-    raw[off] = 0; // filter: None
-    for (let x = 0; x < size; x++) {
-      raw[off + 1 + x * 3] = r;
-      raw[off + 1 + x * 3 + 1] = g;
-      raw[off + 1 + x * 3 + 2] = b;
-    }
-  }
-
-  const compressed = zlib.deflateSync(raw, { level: 9 });
-  const sig = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
-  return Buffer.concat([sig, pngChunk("IHDR", ihdrData), pngChunk("IDAT", compressed), pngChunk("IEND", Buffer.alloc(0))]);
-}
-
-const icon192png = makeSolidPng(192, "#12613d");
-const icon512png = makeSolidPng(512, "#12613d");
-// ────────────────────────────────────────────────────────────────────────────
 
 const contentTypes = {
   ".html": "text/html; charset=utf-8",
@@ -845,16 +793,6 @@ const server = http.createServer(async (request, response) => {
     const requestUrl = new URL(request.url, `http://localhost:${port}`);
     if (requestUrl.pathname.startsWith("/api/")) {
       await routeApi(request, response, requestUrl.pathname);
-      return;
-    }
-    if (requestUrl.pathname === "/icon-192.png") {
-      response.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" });
-      response.end(icon192png);
-      return;
-    }
-    if (requestUrl.pathname === "/icon-512.png") {
-      response.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" });
-      response.end(icon512png);
       return;
     }
     serveStatic(request, response, requestUrl.pathname);
