@@ -1,10 +1,11 @@
-const CACHE = 'bolao-v3';
+const CACHE = 'bolao-v4';
 const ASSETS = [
   '/',
   '/app.js?v=3',
   '/styles.css?v=3',
   '/manifest.json',
-  '/icon.svg'
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {
