@@ -252,6 +252,15 @@ function normalizePhone(phone) {
   return String(phone || "").replace(/[^\d+]/g, "").slice(0, 24);
 }
 
+function hashPassword(password) {
+  return crypto.createHash("sha256").update(String(password)).digest("hex");
+}
+
+function sanitizeParticipant(p) {
+  const { passwordHash, ...rest } = p;
+  return rest;
+}
+
 function matchOutcome(scoreA, scoreB) {
   if (scoreA === scoreB) return "D";
   return scoreA > scoreB ? "A" : "B";
@@ -284,7 +293,7 @@ function participantPayload(store, participantId) {
   const participant = store.participants.find((item) => item.id === participantId);
   if (!participant) return null;
   return {
-    participant,
+    participant: sanitizeParticipant(participant),
     closed: isClosed(store.settings),
     groups: store.groups,
     matches: store.matches,
@@ -516,8 +525,14 @@ async function routeApi(request, response, pathname) {
     const body = await getBody(request);
     const name = String(body.name || "").trim();
     const phone = normalizePhone(body.phone);
+    const password = String(body.password || "").trim();
     if (name.length < 3 || phone.length < 8) {
       sendJson(response, 400, { error: "Informe nome completo e celular com WhatsApp." });
+      return;
+    }
+    const duplicate = store.participants.find((p) => p.phone === phone);
+    if (duplicate) {
+      sendJson(response, 409, { error: "Celular ja cadastrado. Use 'Entrar' para acessar." });
       return;
     }
     const participant = {
@@ -525,11 +540,33 @@ async function routeApi(request, response, pathname) {
       registrationNumber: store.nextRegistration++,
       name,
       phone,
+      passwordHash: password.length >= 4 ? hashPassword(password) : null,
       createdAt: new Date().toISOString()
     };
     store.participants.push(participant);
     writeStore(store);
-    sendJson(response, 201, participant);
+    sendJson(response, 201, sanitizeParticipant(participant));
+    return;
+  }
+
+  if (request.method === "POST" && pathname === "/api/participants/login") {
+    const body = await getBody(request);
+    const phone = normalizePhone(body.phone);
+    const password = String(body.password || "").trim();
+    if (phone.length < 8) {
+      sendJson(response, 400, { error: "Informe o celular com DDD." });
+      return;
+    }
+    const found = store.participants.find((p) => p.phone === phone);
+    if (!found) {
+      sendJson(response, 404, { error: "Celular nao encontrado. Verifique o numero ou crie uma conta." });
+      return;
+    }
+    if (found.passwordHash && hashPassword(password) !== found.passwordHash) {
+      sendJson(response, 401, { error: "Senha incorreta." });
+      return;
+    }
+    sendJson(response, 200, sanitizeParticipant(found));
     return;
   }
 

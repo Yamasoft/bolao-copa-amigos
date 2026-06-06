@@ -115,11 +115,12 @@ const dom = {
   tabEntrar: document.querySelector("#tabEntrar"),
   tabCriar: document.querySelector("#tabCriar"),
   mobileLoginPhone: document.querySelector("#mobileLoginPhone"),
+  mobilePasswordEntrar: document.querySelector("#mobilePasswordEntrar"),
+  mobilePasswordCriar: document.querySelector("#mobilePasswordCriar"),
   mobileLoginBtn: document.querySelector("#mobileLoginBtn"),
   mobileIdBox: document.querySelector("#mobileIdBox"),
   mobileParticipantInfo: document.querySelector("#mobileParticipantInfo"),
-  mpiDetails: document.querySelector("#mpiDetails"),
-  mpiLogout: document.querySelector("#mpiLogout")
+  mpiDetails: document.querySelector("#mpiDetails")
 };
 
 function normalizePhone(phone) {
@@ -212,7 +213,6 @@ function bindEvents() {
   dom.mobileLoginBtn.addEventListener("click", mobileLogin);
   dom.mobileTabEntrar.addEventListener("click", () => switchMobileTab("entrar"));
   dom.mobileTabCriar.addEventListener("click", () => switchMobileTab("criar"));
-  dom.mpiLogout.addEventListener("click", resetMobileIdentification);
   applyPhoneMask(dom.mobileParticipantPhone);
   applyPhoneMask(dom.mobileLoginPhone);
   dom.adminLoginForm.addEventListener("submit", loginAdmin);
@@ -791,27 +791,16 @@ function showMobileIdentified(participant, closed) {
     : '<span aria-hidden="true">✓</span>Salvar palpites';
 }
 
-function resetMobileIdentification() {
-  if (!window.confirm("Tem certeza? Você precisará do seu celular para entrar novamente.")) return;
-  state.participantSession = "";
-  state.participantData = null;
-  localStorage.removeItem("bolaoParticipantId");
-  dom.mobileParticipantInfo.hidden = true;
-  dom.mobileIdBox.hidden = false;
-  dom.mobileSendBtn.hidden = false;
-  dom.mobileSendBtn.disabled = false;
-  dom.mobileSendBtn.innerHTML = '<span aria-hidden="true">⚽</span>Enviar palpites';
-  switchMobileTab("criar");
-}
-
 async function mobileLogin() {
   const phone = normalizePhone(dom.mobileLoginPhone.value);
-  if (phone.length < 8) {
-    toast("Informe o celular com DDD.", "error");
-    return;
-  }
+  const password = dom.mobilePasswordEntrar.value;
+  if (phone.length < 8) { toast("Informe o celular com DDD.", "error"); return; }
+  if (!password) { toast("Informe sua senha.", "error"); return; }
   try {
-    const found = await api(`/api/participants/search?phone=${encodeURIComponent(phone)}`);
+    const found = await api("/api/participants/login", {
+      method: "POST",
+      body: JSON.stringify({ phone, password })
+    });
     state.participantSession = found.id;
     localStorage.setItem("bolaoParticipantId", found.id);
     await loadParticipant(found.id, false);
@@ -819,8 +808,8 @@ async function mobileLogin() {
       showMobileIdentified(state.participantData, state.publicData?.closed);
       toast(`Bem-vindo, ${found.name}!`);
     }
-  } catch {
-    toast("Celular não encontrado. Use 'Criar conta'.", "error");
+  } catch (error) {
+    toast(error.message, "error");
   }
 }
 
@@ -828,24 +817,18 @@ async function mobileSendPalpites() {
   if (!state.participantSession) {
     const name = dom.mobileParticipantName.value.trim();
     const phone = normalizePhone(dom.mobileParticipantPhone.value);
+    const password = dom.mobilePasswordCriar.value;
     if (name.length < 3) { toast("Informe seu nome completo.", "error"); return; }
     if (phone.length < 8) { toast("Informe o celular com DDD.", "error"); return; }
-
+    if (password.length < 4) { toast("Crie uma senha com pelo menos 4 caracteres.", "error"); return; }
     try {
-      try {
-        const found = await api(`/api/participants/search?phone=${encodeURIComponent(phone)}`);
-        state.participantSession = found.id;
-        localStorage.setItem("bolaoParticipantId", found.id);
-        await loadParticipant(found.id, false);
-      } catch {
-        const participant = await api("/api/participants", {
-          method: "POST",
-          body: JSON.stringify({ name, phone: dom.mobileParticipantPhone.value.trim() })
-        });
-        state.participantSession = participant.id;
-        state.participantData = participant;
-        localStorage.setItem("bolaoParticipantId", participant.id);
-      }
+      const participant = await api("/api/participants", {
+        method: "POST",
+        body: JSON.stringify({ name, phone: dom.mobileParticipantPhone.value.trim(), password })
+      });
+      state.participantSession = participant.id;
+      state.participantData = participant;
+      localStorage.setItem("bolaoParticipantId", participant.id);
     } catch (error) {
       toast(error.message, "error");
       return;

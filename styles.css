@@ -1151,7 +1151,7 @@ button.wa-btn:hover {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--primary);
+  color: #1e3a6e;
 }
 
 .matches-grid {
