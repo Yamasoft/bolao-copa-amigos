@@ -792,6 +792,7 @@ function showMobileIdentified(participant, closed) {
 }
 
 function resetMobileIdentification() {
+  if (!window.confirm("Tem certeza? Você precisará do seu celular para entrar novamente.")) return;
   state.participantSession = "";
   state.participantData = null;
   localStorage.removeItem("bolaoParticipantId");
