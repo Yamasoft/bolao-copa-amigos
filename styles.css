@@ -879,7 +879,9 @@ button.small {
 
 /* ── Participant identified card ── */
 .mobile-participant-info[hidden],
-.mobile-id-box[hidden] {
+.mobile-id-box[hidden],
+#mobileMatchesList[hidden],
+#mobileSaveBar[hidden] {
   display: none !important;
 }
 

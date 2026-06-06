@@ -212,6 +212,7 @@
                   <span class="mobile-field-label"><span aria-hidden="true">🔒</span> Senha</span>
                   <input id="mobilePasswordCriar" type="password" autocomplete="new-password" placeholder="Crie uma senha (min. 4 caracteres)" />
                 </label>
+                <button id="mobileRegisterBtn" class="mobile-entrar-btn" type="button"><span aria-hidden="true">✅</span> Criar conta</button>
               </div>
             </div>
           </div>
@@ -221,10 +222,10 @@
             <div class="mpi-text" id="mpiDetails"></div>
           </div>
 
-          <div id="mobileMatchesList"></div>
+          <div id="mobileMatchesList" hidden></div>
 
-          <div class="save-bar mobile-save-bar">
-            <button id="mobileSendBtn" class="primary" type="button"><span aria-hidden="true">⚽</span>Enviar palpites</button>
+          <div class="save-bar mobile-save-bar" hidden id="mobileSaveBar">
+            <button id="mobileSendBtn" class="primary" type="button"><span aria-hidden="true">✓</span>Salvar palpites</button>
           </div>
         </section>
 

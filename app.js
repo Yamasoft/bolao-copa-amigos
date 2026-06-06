@@ -117,7 +117,9 @@ const dom = {
   mobileLoginPhone: document.querySelector("#mobileLoginPhone"),
   mobilePasswordEntrar: document.querySelector("#mobilePasswordEntrar"),
   mobilePasswordCriar: document.querySelector("#mobilePasswordCriar"),
+  mobileRegisterBtn: document.querySelector("#mobileRegisterBtn"),
   mobileLoginBtn: document.querySelector("#mobileLoginBtn"),
+  mobileSaveBar: document.querySelector("#mobileSaveBar"),
   mobileIdBox: document.querySelector("#mobileIdBox"),
   mobileParticipantInfo: document.querySelector("#mobileParticipantInfo"),
   mpiDetails: document.querySelector("#mpiDetails")
@@ -210,6 +212,7 @@ function bindEvents() {
   dom.searchPhoneForm.addEventListener("submit", searchByPhone);
   dom.savePredictions.addEventListener("click", savePredictions);
   dom.mobileSendBtn.addEventListener("click", mobileSendPalpites);
+  dom.mobileRegisterBtn.addEventListener("click", mobileRegister);
   dom.mobileLoginBtn.addEventListener("click", mobileLogin);
   dom.mobileTabEntrar.addEventListener("click", () => switchMobileTab("entrar"));
   dom.mobileTabCriar.addEventListener("click", () => switchMobileTab("criar"));
@@ -774,7 +777,6 @@ function switchMobileTab(tab) {
   dom.mobileTabCriar.classList.toggle("active", tab === "criar");
   dom.tabEntrar.classList.toggle("active", tab === "entrar");
   dom.tabCriar.classList.toggle("active", tab === "criar");
-  dom.mobileSendBtn.hidden = tab === "entrar";
 }
 
 function showMobileIdentified(participant, closed) {
@@ -784,7 +786,8 @@ function showMobileIdentified(participant, closed) {
     <strong>${escapeHtml(participant.name)}</strong>
     <span>Inscrição ${participant.registrationNumber}</span>
   `;
-  dom.mobileSendBtn.hidden = false;
+  dom.mobileMatchesList.hidden = false;
+  dom.mobileSaveBar.hidden = !!closed;
   dom.mobileSendBtn.disabled = !!closed;
   dom.mobileSendBtn.innerHTML = closed
     ? '<span aria-hidden="true">🔒</span>Palpites encerrados'
@@ -813,27 +816,30 @@ async function mobileLogin() {
   }
 }
 
-async function mobileSendPalpites() {
-  if (!state.participantSession) {
-    const name = dom.mobileParticipantName.value.trim();
-    const phone = normalizePhone(dom.mobileParticipantPhone.value);
-    const password = dom.mobilePasswordCriar.value;
-    if (name.length < 3) { toast("Informe seu nome completo.", "error"); return; }
-    if (phone.length < 8) { toast("Informe o celular com DDD.", "error"); return; }
-    if (password.length < 4) { toast("Crie uma senha com pelo menos 4 caracteres.", "error"); return; }
-    try {
-      const participant = await api("/api/participants", {
-        method: "POST",
-        body: JSON.stringify({ name, phone: dom.mobileParticipantPhone.value.trim(), password })
-      });
-      state.participantSession = participant.id;
-      state.participantData = participant;
-      localStorage.setItem("bolaoParticipantId", participant.id);
-    } catch (error) {
-      toast(error.message, "error");
-      return;
-    }
+async function mobileRegister() {
+  const name = dom.mobileParticipantName.value.trim();
+  const phone = normalizePhone(dom.mobileParticipantPhone.value);
+  const password = dom.mobilePasswordCriar.value;
+  if (name.length < 3) { toast("Informe seu nome completo.", "error"); return; }
+  if (phone.length < 8) { toast("Informe o celular com DDD.", "error"); return; }
+  if (password.length < 4) { toast("Crie uma senha com pelo menos 4 caracteres.", "error"); return; }
+  try {
+    const participant = await api("/api/participants", {
+      method: "POST",
+      body: JSON.stringify({ name, phone: dom.mobileParticipantPhone.value.trim(), password })
+    });
+    state.participantSession = participant.id;
+    state.participantData = participant;
+    localStorage.setItem("bolaoParticipantId", participant.id);
+    showMobileIdentified(participant, state.publicData?.closed);
+    toast("Conta criada! Faça seus palpites e clique em Salvar.");
+  } catch (error) {
+    toast(error.message, "error");
   }
+}
+
+async function mobileSendPalpites() {
+  if (!state.participantSession) { toast("Faça login ou crie uma conta primeiro.", "error"); return; }
 
   const matchPredictions = [];
   dom.mobileMatchesList.querySelectorAll(".choice-btn.selected").forEach((btn) => {
