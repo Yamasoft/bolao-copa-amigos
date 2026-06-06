@@ -172,6 +172,9 @@ async function api(path, options = {}) {
 }
 
 async function init() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
   bindEvents();
   await loadPublicData();
   await renderRanking();
@@ -390,9 +393,17 @@ function renderPredictionForms(data) {
                         <span class="team-name">${escapeHtml(match.teamA)}</span>
                       </div>
                       <div class="score-inputs">
-                        <input class="score-input" type="number" min="0" max="99" data-match="${match.id}" data-side="home" value="${homeVal}" ${dis} inputmode="numeric" aria-label="Gols ${escapeAttr(match.teamA)}" />
+                        <div class="score-stepper">
+                          <button class="stepper-btn stepper-dec" data-match="${match.id}" data-side="home" type="button" ${dis} aria-label="Diminuir">−</button>
+                          <input class="score-input" type="number" min="0" max="99" data-match="${match.id}" data-side="home" value="${homeVal}" ${dis} inputmode="numeric" aria-label="Gols ${escapeAttr(match.teamA)}" />
+                          <button class="stepper-btn stepper-inc" data-match="${match.id}" data-side="home" type="button" ${dis} aria-label="Aumentar">+</button>
+                        </div>
                         <span class="score-sep">×</span>
-                        <input class="score-input" type="number" min="0" max="99" data-match="${match.id}" data-side="away" value="${awayVal}" ${dis} inputmode="numeric" aria-label="Gols ${escapeAttr(match.teamB)}" />
+                        <div class="score-stepper">
+                          <button class="stepper-btn stepper-dec" data-match="${match.id}" data-side="away" type="button" ${dis} aria-label="Diminuir">−</button>
+                          <input class="score-input" type="number" min="0" max="99" data-match="${match.id}" data-side="away" value="${awayVal}" ${dis} inputmode="numeric" aria-label="Gols ${escapeAttr(match.teamB)}" />
+                          <button class="stepper-btn stepper-inc" data-match="${match.id}" data-side="away" type="button" ${dis} aria-label="Aumentar">+</button>
+                        </div>
                       </div>
                       <div class="score-team score-team-right">
                         <span class="team-flag" aria-hidden="true"><span class="flag-emoji">${flagB.emoji}</span></span>
@@ -412,6 +423,11 @@ function renderPredictionForms(data) {
   [dom.matchesList, dom.mobileMatchesList].forEach((container) => {
     if (!container) return;
     container.innerHTML = html;
+    if (!data.closed) {
+      container.querySelectorAll(".stepper-btn").forEach((btn) => {
+        btn.addEventListener("click", onStepperClick);
+      });
+    }
   });
 
   dom.savePredictions.disabled = data.closed;
@@ -430,6 +446,15 @@ function collectScorePredictions(container) {
     .filter(([, v]) => v.home !== "" && v.away !== "")
     .map(([matchId, v]) => ({ matchId, homeScore: parseInt(v.home), awayScore: parseInt(v.away) }))
     .filter((p) => !isNaN(p.homeScore) && !isNaN(p.awayScore));
+}
+
+function onStepperClick(e) {
+  const btn = e.currentTarget;
+  const inc = btn.classList.contains("stepper-inc");
+  const container = btn.closest("#matchesList, #mobileMatchesList");
+  const input = container.querySelector(`.score-input[data-match="${btn.dataset.match}"][data-side="${btn.dataset.side}"]`);
+  const current = input.value === "" ? 0 : parseInt(input.value) || 0;
+  input.value = inc ? current + 1 : Math.max(0, current - 1);
 }
 
 async function savePredictions() {

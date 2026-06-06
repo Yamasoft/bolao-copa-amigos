@@ -17,7 +17,11 @@ const contentTypes = {
   ".js": "text/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".pdf": "application/pdf",
-  ".csv": "text/csv; charset=utf-8"
+  ".csv": "text/csv; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".webmanifest": "application/manifest+json; charset=utf-8",
+  ".png": "image/png",
+  ".ico": "image/x-icon"
 };
 
 // Grupos A-J confirmados via ge.globo.com/futebol/copa-do-mundo (02/06/2026).

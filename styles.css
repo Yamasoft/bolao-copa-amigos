@@ -1481,7 +1481,7 @@ button.wa-btn:hover {
 .match-score-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 10px 8px;
 }
 
@@ -1519,17 +1519,53 @@ button.wa-btn:hover {
   flex: 0 0 auto;
 }
 
-.score-input {
-  width: 48px;
-  height: 48px;
+.score-stepper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.stepper-btn {
+  width: 30px;
+  height: 44px;
   border: 2px solid var(--line);
-  border-radius: 10px;
   background: var(--soft);
-  font-size: 1.4rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary);
+  cursor: pointer;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+  line-height: 1;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.stepper-btn:active:not(:disabled) {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.stepper-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.score-input {
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 1.35rem;
   font-weight: 800;
   text-align: center;
   color: var(--primary);
-  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+  transition: border-color 0.18s, box-shadow 0.18s;
   -moz-appearance: textfield;
 }
 
@@ -1542,17 +1578,17 @@ button.wa-btn:hover {
 .score-input:focus {
   outline: none;
   border-color: var(--primary);
-  background: #fff;
   box-shadow: 0 0 0 3px rgba(18, 97, 61, 0.15);
 }
 
 .score-input:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background: var(--soft);
 }
 
 .score-sep {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 900;
   color: var(--muted);
 }

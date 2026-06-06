@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#12613d"/>
+  <rect width="512" height="512" rx="96" fill="url(#g)"/>
+  <defs>
+    <radialGradient id="g" cx="62%" cy="18%" r="70%">
+      <stop offset="0%" stop-color="#d7b349" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#12613d" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Trophy cup -->
+  <path d="M175 130 h162 l-18 90 c-2 30-20 55-42 68 v28 h20 c8 0 14 6 14 14 v18 H201 v-18 c0-8 6-14 14-14 h20 v-28 c-22-13-40-38-42-68 Z" fill="white" opacity="0.95"/>
+  <!-- Trophy handles -->
+  <path d="M175 150 h-28 c-18 0-30 14-30 30 s12 30 30 30 h18" fill="none" stroke="white" stroke-width="14" stroke-linecap="round" opacity="0.95"/>
+  <path d="M337 150 h28 c18 0 30 14 30 30 s-12 30-30 30 h-18" fill="none" stroke="white" stroke-width="14" stroke-linecap="round" opacity="0.95"/>
+  <!-- Base plate -->
+  <rect x="156" y="368" width="200" height="22" rx="11" fill="white" opacity="0.6"/>
+  <!-- BCA text -->
+  <text x="256" y="460" text-anchor="middle" font-size="48" font-weight="900" font-family="system-ui,sans-serif" fill="rgba(255,255,255,0.75)" letter-spacing="6">BOLÃO</text>
+</svg>
