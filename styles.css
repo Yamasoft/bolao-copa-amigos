@@ -881,6 +881,8 @@ button.small {
 .mobile-participant-info[hidden],
 .mobile-id-box[hidden],
 #mobileMatchesList[hidden],
+#mobileRankingPanel[hidden],
+#mobileViewTabs[hidden],
 #mobileSaveBar[hidden] {
   display: none !important;
 }
@@ -1593,9 +1595,17 @@ button.wa-btn:hover {
   color: var(--muted);
 }
 
-/* ── Regulamento button in hero ── */
-.mobile-rules-btn {
+/* ── Hero action buttons row ── */
+.mobile-hero-actions {
   margin-top: 14px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.mobile-rules-btn,
+.mobile-install-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1603,16 +1613,137 @@ button.wa-btn:hover {
   border: 1px solid rgba(255, 255, 255, 0.35);
   color: #fff;
   border-radius: 20px;
-  padding: 8px 18px;
-  font-size: 0.82rem;
+  padding: 8px 16px;
+  font-size: 0.81rem;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.18s;
   letter-spacing: 0.02em;
 }
 
-.mobile-rules-btn:hover {
+.mobile-rules-btn:hover,
+.mobile-install-btn:hover {
   background: rgba(255, 255, 255, 0.22);
+}
+
+/* ── Mobile view tab bar (Palpites / Ranking) ── */
+.mobile-view-tabs {
+  display: flex;
+  background: #fff;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  border: 1px solid var(--line);
+}
+
+.mvt-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border: none;
+  background: none;
+  border-radius: 9px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.mvt-btn.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(18, 97, 61, 0.25);
+}
+
+/* ── Mobile ranking panel ── */
+.mobile-ranking-wrap {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  margin-bottom: 80px;
+}
+
+.mobile-ranking-title {
+  margin: 0;
+  padding: 14px 18px 12px;
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--primary);
+  border-bottom: 1px solid var(--line);
+  background: var(--soft);
+}
+
+.mobile-ranking-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-ranking-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  transition: background 0.15s;
+}
+
+.mobile-ranking-row:last-child { border-bottom: none; }
+
+.mobile-ranking-row.mobile-ranking-me {
+  background: rgba(18, 97, 61, 0.06);
+}
+
+.mrk-pos {
+  font-size: 1.1rem;
+  min-width: 32px;
+  text-align: center;
+}
+
+.mrk-name {
+  flex: 1;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mrk-you {
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 4px;
+  padding: 1px 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mrk-pts {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--primary);
+}
+
+.mrk-pts small {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.mobile-ranking-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.88rem;
 }
 
 /* ── Regulamento modal ── */

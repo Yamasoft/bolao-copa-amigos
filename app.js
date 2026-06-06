@@ -3,8 +3,15 @@ const state = {
   participantData: null,
   participantSession: localStorage.getItem("bolaoParticipantId") || "",
   adminToken: localStorage.getItem("bolaoAdminToken") || "",
-  adminData: null
+  adminData: null,
+  pwaInstallPrompt: null
 };
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  state.pwaInstallPrompt = e;
+  if (dom.installPwaBtn) dom.installPwaBtn.hidden = false;
+});
 
 const TEAM_FLAGS = {
   "africa do sul": "ZA",
@@ -125,7 +132,12 @@ const dom = {
   mpiDetails: document.querySelector("#mpiDetails"),
   openRegulamento: document.querySelector("#openRegulamento"),
   regulamentoModal: document.querySelector("#regulamentoModal"),
-  closeRegulamento: document.querySelector("#closeRegulamento")
+  closeRegulamento: document.querySelector("#closeRegulamento"),
+  installPwaBtn: document.querySelector("#installPwaBtn"),
+  mobileViewTabs: document.querySelector("#mobileViewTabs"),
+  mvtPalpites: document.querySelector("#mvtPalpites"),
+  mvtRanking: document.querySelector("#mvtRanking"),
+  mobileRankingPanel: document.querySelector("#mobileRankingPanel")
 };
 
 function normalizePhone(phone) {
@@ -239,6 +251,15 @@ function bindEvents() {
   dom.openRegulamento.addEventListener("click", () => { dom.regulamentoModal.hidden = false; });
   dom.closeRegulamento.addEventListener("click", () => { dom.regulamentoModal.hidden = true; });
   dom.regulamentoModal.addEventListener("click", (e) => { if (e.target === dom.regulamentoModal) dom.regulamentoModal.hidden = true; });
+  dom.installPwaBtn.addEventListener("click", async () => {
+    if (!state.pwaInstallPrompt) return;
+    state.pwaInstallPrompt.prompt();
+    await state.pwaInstallPrompt.userChoice;
+    state.pwaInstallPrompt = null;
+    dom.installPwaBtn.hidden = true;
+  });
+  dom.mvtPalpites.addEventListener("click", () => switchMobileViewTab("palpites"));
+  dom.mvtRanking.addEventListener("click", () => switchMobileViewTab("ranking"));
 }
 
 function toast(text, type = "success") {
@@ -715,6 +736,35 @@ async function renderRanking() {
   renderRankingRows(ranking, dom.publicRanking, { showPhone: false });
 }
 
+async function renderMobileRanking() {
+  try {
+    const ranking = await api("/api/ranking");
+    if (!ranking.length) {
+      dom.mobileRankingPanel.innerHTML = '<p class="mobile-ranking-empty">Nenhum palpite enviado ainda.</p>';
+      return;
+    }
+    const myId = state.participantSession;
+    dom.mobileRankingPanel.innerHTML = `
+      <div class="mobile-ranking-wrap">
+        <h3 class="mobile-ranking-title">🏅 Ranking</h3>
+        <div class="mobile-ranking-list">
+          ${ranking.map((row) => {
+            const isMe = row.id === myId;
+            const medal = row.position === 1 ? "🥇" : row.position === 2 ? "🥈" : row.position === 3 ? "🥉" : `${row.position}º`;
+            return `
+              <div class="mobile-ranking-row${isMe ? " mobile-ranking-me" : ""}">
+                <span class="mrk-pos">${medal}</span>
+                <span class="mrk-name">${escapeHtml(row.name)}${isMe ? ' <span class="mrk-you">você</span>' : ""}</span>
+                <span class="mrk-pts">${row.points} <small>pts</small></span>
+              </div>`;
+          }).join("")}
+        </div>
+      </div>`;
+  } catch {
+    dom.mobileRankingPanel.innerHTML = '<p class="mobile-ranking-empty">Erro ao carregar ranking.</p>';
+  }
+}
+
 function renderRankingRows(rows, target, { showPhone = true } = {}) {
   const cols = showPhone ? 4 : 3;
   target.innerHTML = rows.length
@@ -816,12 +866,26 @@ function showMobileIdentified(participant, closed) {
     <strong>${escapeHtml(participant.name)}</strong>
     <span>Inscrição ${participant.registrationNumber}</span>
   `;
+  dom.mobileViewTabs.hidden = false;
   dom.mobileMatchesList.hidden = false;
+  dom.mobileRankingPanel.hidden = true;
   dom.mobileSaveBar.hidden = !!closed;
   dom.mobileSendBtn.disabled = !!closed;
   dom.mobileSendBtn.innerHTML = closed
     ? '<span aria-hidden="true">🔒</span>Palpites encerrados'
     : '<span aria-hidden="true">✓</span>Salvar palpites';
+  dom.mvtPalpites.classList.add("active");
+  dom.mvtRanking.classList.remove("active");
+}
+
+function switchMobileViewTab(tab) {
+  const isPalpites = tab === "palpites";
+  dom.mvtPalpites.classList.toggle("active", isPalpites);
+  dom.mvtRanking.classList.toggle("active", !isPalpites);
+  dom.mobileMatchesList.hidden = !isPalpites;
+  dom.mobileRankingPanel.hidden = isPalpites;
+  dom.mobileSaveBar.hidden = !isPalpites || !!state.publicData?.closed;
+  if (!isPalpites) renderMobileRanking();
 }
 
 async function mobileLogin() {

@@ -2,7 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Bolão Copa Amigos</title>
     <meta name="theme-color" content="#12613d" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -178,7 +178,10 @@
             <div class="mobile-hero-icon-wrap" aria-hidden="true">🏆</div>
             <h2 class="mobile-hero-title">Bol&atilde;o Copa Amigos</h2>
             <p class="mobile-hero-sub">Palpite o placar de cada jogo e dispute entre amigos</p>
-            <button class="mobile-rules-btn" id="openRegulamento" type="button">📋 Ver regulamento</button>
+            <div class="mobile-hero-actions">
+              <button class="mobile-rules-btn" id="openRegulamento" type="button">📋 Regulamento</button>
+              <button class="mobile-install-btn" id="installPwaBtn" type="button" hidden>📲 Instalar app</button>
+            </div>
           </div>
 
           <div class="mobile-id-box" id="mobileIdBox">
@@ -230,7 +233,13 @@
             <div class="mpi-text" id="mpiDetails"></div>
           </div>
 
+          <div class="mobile-view-tabs" id="mobileViewTabs" hidden>
+            <button class="mvt-btn active" id="mvtPalpites" type="button"><span aria-hidden="true">⚽</span> Palpites</button>
+            <button class="mvt-btn" id="mvtRanking" type="button"><span aria-hidden="true">🏅</span> Ranking</button>
+          </div>
+
           <div id="mobileMatchesList" hidden></div>
+          <div id="mobileRankingPanel" hidden></div>
 
           <div class="save-bar mobile-save-bar" hidden id="mobileSaveBar">
             <button id="mobileSendBtn" class="primary" type="button"><span aria-hidden="true">✓</span>Salvar palpites</button>
