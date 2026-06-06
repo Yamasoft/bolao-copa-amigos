@@ -94,6 +94,7 @@ const dom = {
   adminPanel: document.querySelector("#adminPanel"),
   adminCopyLink: document.querySelector("#adminCopyLink"),
   adminCopyWhatsapp: document.querySelector("#adminCopyWhatsapp"),
+  adminCopyInstall: document.querySelector("#adminCopyInstall"),
   deadlineAt: document.querySelector("#deadlineAt"),
   locked: document.querySelector("#locked"),
   saveSettings: document.querySelector("#saveSettings"),
@@ -239,6 +240,7 @@ function bindEvents() {
   dom.adminLoginForm.addEventListener("submit", loginAdmin);
   dom.adminCopyLink.addEventListener("click", adminCopyPublicLink);
   dom.adminCopyWhatsapp.addEventListener("click", adminCopyWhatsappMsg);
+  dom.adminCopyInstall.addEventListener("click", adminCopyInstallMsg);
   dom.saveSettings.addEventListener("click", saveSettings);
   dom.saveResults.addEventListener("click", saveResults);
   dom.importGames.addEventListener("click", importGames);
@@ -636,6 +638,32 @@ async function adminCopyWhatsappMsg() {
   const msg = state.publicData?.settings?.publicMessage || "Bolao Copa Amigos";
   try { await navigator.clipboard.writeText(`${msg}\n\n${url}`); } catch {}
   toast("Mensagem copiada.");
+}
+
+async function adminCopyInstallMsg() {
+  const url = `${location.origin}${location.pathname}`;
+  const msg = [
+    "📲 *Como instalar o Bolão Copa Amigos no celular*",
+    "",
+    `Acesse: ${url}`,
+    "",
+    "━━━━━━━━━━━━━━━━━━━━",
+    "📱 *Android (Chrome):*",
+    "1. Abra o link acima no Chrome",
+    "2. Toque no menu ⋮ (três pontos) no canto superior direito",
+    "3. Toque em *\"Adicionar à tela inicial\"* ou *\"Instalar app\"*",
+    "4. Confirme tocando em *Instalar*",
+    "",
+    "🍎 *iPhone (Safari):*",
+    "1. Abra o link acima no *Safari* (não no Chrome)",
+    "2. Toque no botão *Compartilhar* 🔗 (quadrado com seta para cima)",
+    "3. Role para baixo e toque em *\"Adicionar à Tela de Início\"*",
+    "4. Toque em *Adicionar*",
+    "",
+    "Depois de instalar, o app abre em tela cheia, sem barra do browser. ✅"
+  ].join("\n");
+  try { await navigator.clipboard.writeText(msg); } catch {}
+  toast("Mensagem de instalação copiada!");
 }
 
 async function saveSettings() {
